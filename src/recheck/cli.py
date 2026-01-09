@@ -131,10 +131,8 @@ Examples:
                     # Generate example attack string
                     attack = result.attack_pattern.build_attack_string(20)
                     print("  Example: {0!r}".format(attack))
-                if result.hotspots:
-                    print("Hotspots:")
-                    for hotspot in result.hotspots:
-                        print("  - {0}".format(hotspot))
+                if result.hotspot:
+                    print("Hotspot: {0}".format(result.hotspot))
                 print()
             else:
                 # Normal output
