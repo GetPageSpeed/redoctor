@@ -59,6 +59,7 @@ class Config:
     max_pattern_size: int = 1500
     recall_limit: int = 10
     recall_timeout: float = 1.0
+    skip_recall: bool = False
 
     @classmethod
     def default(cls) -> "Config":
@@ -73,6 +74,7 @@ class Config:
             max_attack_length=256,
             max_iterations=10000,
             recall_timeout=0.1,
+            skip_recall=True,
         )
 
     @classmethod

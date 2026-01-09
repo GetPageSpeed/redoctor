@@ -76,8 +76,12 @@ class HybridChecker:
         else:  # FUZZ
             result = self.fuzz_checker.check_pattern(pattern)
 
-        # Validate vulnerabilities with recall
-        if result.is_vulnerable and result.attack_pattern:
+        # Validate vulnerabilities with recall (unless skipped)
+        if (
+            result.is_vulnerable
+            and result.attack_pattern
+            and not self.config.skip_recall
+        ):
             validated = self._validate_result(pattern.source, result)
             if validated:
                 return result
