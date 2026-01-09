@@ -69,9 +69,15 @@ class HybridChecker:
         if checker_type == CheckerType.AUTOMATON:
             result = self.automaton_checker.check_pattern(pattern)
 
-            # If automaton checker returns unknown, try fuzz
-            if result.status == Status.UNKNOWN:
-                result = self.fuzz_checker.check_pattern(pattern)
+            # If automaton checker returns safe or unknown, also try fuzz
+            # The automaton checker has known limitations with certain patterns
+            # (e.g., nested quantifiers like (a+)+ where epsilon elimination
+            # collapses the ambiguous paths)
+            if result.status in (Status.UNKNOWN, Status.SAFE):
+                fuzz_result = self.fuzz_checker.check_pattern(pattern)
+                # Take the more severe result
+                if fuzz_result.is_vulnerable:
+                    result = fuzz_result
 
         else:  # FUZZ
             result = self.fuzz_checker.check_pattern(pattern)

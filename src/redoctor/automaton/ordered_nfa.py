@@ -28,7 +28,17 @@ class OrderedNFA:
 
     @classmethod
     def from_eps_nfa(cls, eps_nfa: EpsNFA) -> "OrderedNFA":
-        """Convert an epsilon-NFA to an ordered NFA by eliminating epsilon transitions."""
+        """Convert an epsilon-NFA to an ordered NFA by eliminating epsilon transitions.
+
+        For ambiguity detection, we need to track which intermediate state
+        the character transition comes from. This is important for patterns
+        like (a+)+ where different epsilon paths lead to the same character
+        transition but represent different computational paths.
+
+        The epsilon closure is used for:
+        1. Finding which character transitions are reachable from a state
+        2. Determining if a state can reach accepting states
+        """
         ordered = cls()
         ordered.states = set(eps_nfa.states)
         ordered.initial = eps_nfa.initial
@@ -44,15 +54,27 @@ class OrderedNFA:
             ordered.transitions[state] = []
 
             # Collect all transitions from epsilon closure
+            # Key: track (closure_state, char, target) to preserve different paths
+            # that lead to the same character transition from different epsilon paths
             trans_by_priority: Dict[int, List[Transition]] = {}
+            seen_transitions: Set[tuple] = set()
+
             for closure_state in closures[state]:
                 for trans in eps_nfa.transitions_from(closure_state):
                     if trans.type == TransitionType.CHAR:
-                        # Create new transition to epsilon closure of target
-                        for target in closures[trans.target]:
+                        # Track the intermediate state (closure_state) to distinguish
+                        # different epsilon paths that reach the same char transition
+                        trans_key = (
+                            closure_state,
+                            trans.char,
+                            trans.target,
+                            trans.priority,
+                        )
+                        if trans_key not in seen_transitions:
+                            seen_transitions.add(trans_key)
                             new_trans = Transition(
                                 source=state,
-                                target=target,
+                                target=trans.target,
                                 type=TransitionType.CHAR,
                                 char=trans.char,
                                 priority=trans.priority,
