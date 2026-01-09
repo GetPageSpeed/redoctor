@@ -1,58 +1,8 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[project]
-name = "recheck"
-version = "0.1.0"
-description = "A Python ReDoS (Regular Expression Denial of Service) vulnerability checker"
-readme = "README.md"
-license = {file = "LICENSE"}
-authors = [
-    {name = "recheck-py contributors"}
-]
-requires-python = ">=3.6"
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: Other/Proprietary",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Security",
-    "Topic :: Software Development :: Testing",
-    "Typing :: Typed",
-]
-keywords = ["regex", "redos", "security", "vulnerability", "static-analysis"]
-dependencies = [
-    "dataclasses;python_version<'3.7'",
-]
-
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-timeout>=2.0.0",
-    "pytest-xdist",
-]
-
-[project.urls]
-Homepage = "https://github.com/GetPageSpeed/recheck"
-Documentation = "https://github.com/GetPageSpeed/recheck#readme"
-Repository = "https://github.com/GetPageSpeed/recheck"
-
-[project.scripts]
-recheck = "recheck.cli:main"
-
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["recheck*"]
+# Metadata is in setup.cfg for Python 3.6 compatibility
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
