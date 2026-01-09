@@ -2,10 +2,10 @@
 
 import pytest
 
-from recheck.unicode.uchar import UChar
-from recheck.unicode.ichar import IChar
-from recheck.unicode.icharset import ICharSet
-from recheck.unicode.ustring import UString
+from redoctor.unicode.uchar import UChar
+from redoctor.unicode.ichar import IChar
+from redoctor.unicode.icharset import ICharSet
+from redoctor.unicode.ustring import UString
 
 
 class TestUChar:

@@ -1,18 +1,18 @@
 """Tests for the VM interpreter."""
 
 
-from recheck.parser.parser import parse
-from recheck.vm.inst import Inst, OpCode
-from recheck.vm.program import Program
-from recheck.vm.builder import build_program
-from recheck.vm.interpreter import Interpreter, MatchResult, count_steps
+from redoctor.parser.parser import parse
+from redoctor.vm.inst import Inst, OpCode
+from redoctor.vm.program import Program
+from redoctor.vm.builder import build_program
+from redoctor.vm.interpreter import Interpreter, MatchResult, count_steps
 
 
 class TestInstructions:
     """Test VM instructions."""
 
     def test_char_instruction(self):
-        from recheck.unicode.ichar import IChar
+        from redoctor.unicode.ichar import IChar
 
         inst = Inst.char(IChar.from_char("a"))
         assert inst.op == OpCode.CHAR

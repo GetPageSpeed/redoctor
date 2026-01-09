@@ -2,9 +2,9 @@
 
 import pytest
 
-from recheck.parser.parser import parse
-from recheck.parser.flags import Flags
-from recheck.parser.ast import (
+from redoctor.parser.parser import parse
+from redoctor.parser.flags import Flags
+from redoctor.parser.ast import (
     Pattern,
     Disjunction,
     Sequence,
@@ -35,7 +35,7 @@ from recheck.parser.ast import (
     has_lookaround,
     count_captures,
 )
-from recheck.exceptions import ParseError
+from redoctor.exceptions import ParseError
 
 
 class TestBasicParsing:

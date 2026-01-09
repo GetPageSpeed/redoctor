@@ -1,10 +1,10 @@
 """Extended checker tests for increased coverage."""
 
 
-from recheck import check, Config
-from recheck.checker import HybridChecker
-from recheck.parser.flags import Flags
-from recheck.config import CheckerType
+from redoctor import check, Config
+from redoctor.checker import HybridChecker
+from redoctor.parser.flags import Flags
+from redoctor.config import CheckerType
 
 
 class TestHybridCheckerExtended:

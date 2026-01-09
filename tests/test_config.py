@@ -1,7 +1,7 @@
 """Tests for configuration."""
 
 
-from recheck.config import Config, CheckerType, AccelerationMode, SeederType
+from redoctor.config import Config, CheckerType, AccelerationMode, SeederType
 
 
 class TestConfig:

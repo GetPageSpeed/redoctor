@@ -1,10 +1,10 @@
 """Tests for diagnostic types."""
 
 
-from recheck.diagnostics.complexity import Complexity, ComplexityType
-from recheck.diagnostics.attack_pattern import AttackPattern
-from recheck.diagnostics.hotspot import Hotspot, HotspotSet
-from recheck.diagnostics.diagnostics import Diagnostics, Status
+from redoctor.diagnostics.complexity import Complexity, ComplexityType
+from redoctor.diagnostics.attack_pattern import AttackPattern
+from redoctor.diagnostics.hotspot import Hotspot, HotspotSet
+from redoctor.diagnostics.diagnostics import Diagnostics, Status
 
 
 class TestComplexity:

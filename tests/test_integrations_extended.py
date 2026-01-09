@@ -3,14 +3,14 @@
 import tempfile
 import os
 
-from recheck.integrations.source_scanner import (
+from redoctor.integrations.source_scanner import (
     scan_source,
     scan_directory,
     SourceVulnerability,
     RegexFinder,
 )
-from recheck.config import Config
-from recheck.diagnostics.diagnostics import Diagnostics
+from redoctor.config import Config
+from redoctor.diagnostics.diagnostics import Diagnostics
 
 
 class TestRegexFinder:

@@ -1,12 +1,12 @@
 """Extended tests for the VM interpreter to increase coverage."""
 
 
-from recheck.parser.parser import parse
-from recheck.vm.inst import Inst, OpCode
-from recheck.vm.program import Program
-from recheck.vm.builder import build_program
-from recheck.vm.interpreter import Interpreter, MatchResult, count_steps
-from recheck.unicode.ichar import IChar
+from redoctor.parser.parser import parse
+from redoctor.vm.inst import Inst, OpCode
+from redoctor.vm.program import Program
+from redoctor.vm.builder import build_program
+from redoctor.vm.interpreter import Interpreter, MatchResult, count_steps
+from redoctor.unicode.ichar import IChar
 
 
 class TestInstructionsExtended:
@@ -87,7 +87,7 @@ class TestBuilderExtended:
         assert result == MatchResult.MATCH
 
     def test_build_dot_dotall(self):
-        from recheck.parser.flags import Flags
+        from redoctor.parser.flags import Flags
 
         pattern = parse(".", Flags(dotall=True))
         prog = build_program(pattern)
@@ -250,7 +250,7 @@ class TestBuilderExtended:
         assert len(prog) > 0
 
     def test_build_case_insensitive(self):
-        from recheck.parser.flags import Flags
+        from redoctor.parser.flags import Flags
 
         pattern = parse("a", Flags(ignore_case=True))
         prog = build_program(pattern)
@@ -393,7 +393,7 @@ class TestInterpreterEdgeCases:
     """Test interpreter edge cases for coverage."""
 
     def test_any_char_dotall(self):
-        from recheck.parser.flags import Flags
+        from redoctor.parser.flags import Flags
 
         pattern = parse(".", Flags(dotall=True))
         prog = build_program(pattern)

@@ -2,7 +2,7 @@
 
 import pytest
 
-from recheck import check, Config
+from redoctor import check, Config
 
 
 class TestKnownCVEPatterns:

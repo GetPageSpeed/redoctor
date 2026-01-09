@@ -1,12 +1,12 @@
 """Tests for the fuzzing module."""
 
 
-from recheck.parser.parser import parse
-from recheck.fuzz.fstring import FString
-from recheck.fuzz.seeder import StaticSeeder, DynamicSeeder
-from recheck.fuzz.mutators import RandomMutator, PumpMutator, CombinedMutator
-from recheck.fuzz.checker import FuzzChecker
-from recheck.config import Config
+from redoctor.parser.parser import parse
+from redoctor.fuzz.fstring import FString
+from redoctor.fuzz.seeder import StaticSeeder, DynamicSeeder
+from redoctor.fuzz.mutators import RandomMutator, PumpMutator, CombinedMutator
+from redoctor.fuzz.checker import FuzzChecker
+from redoctor.config import Config
 
 
 class TestFString:

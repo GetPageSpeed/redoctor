@@ -1,12 +1,12 @@
 """Extended fuzz tests for increased coverage."""
 
 
-from recheck.parser.parser import parse
-from recheck.fuzz.fstring import FString
-from recheck.fuzz.seeder import StaticSeeder
-from recheck.fuzz.mutators import RandomMutator, PumpMutator, CombinedMutator
-from recheck.fuzz.checker import FuzzChecker
-from recheck.config import Config
+from redoctor.parser.parser import parse
+from redoctor.fuzz.fstring import FString
+from redoctor.fuzz.seeder import StaticSeeder
+from redoctor.fuzz.mutators import RandomMutator, PumpMutator, CombinedMutator
+from redoctor.fuzz.checker import FuzzChecker
+from redoctor.config import Config
 
 
 class TestFStringExtended:
@@ -202,7 +202,7 @@ class TestFuzzCheckerExtended:
         assert result is not None
 
     def test_check_with_flags(self):
-        from recheck.parser.flags import Flags
+        from redoctor.parser.flags import Flags
 
         checker = FuzzChecker(Config.quick())
         result = checker.check(r"^hello$", Flags(ignore_case=True))

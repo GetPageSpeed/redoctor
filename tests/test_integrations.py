@@ -3,7 +3,7 @@
 import tempfile
 import os
 
-from recheck.integrations.source_scanner import (
+from redoctor.integrations.source_scanner import (
     scan_source,
     scan_file,
     scan_directory,
@@ -105,7 +105,7 @@ class TestSourceVulnerability:
     """Test SourceVulnerability class."""
 
     def test_str(self):
-        from recheck.diagnostics.diagnostics import Diagnostics
+        from redoctor.diagnostics.diagnostics import Diagnostics
 
         diag = Diagnostics.safe("^test$")
         vuln = SourceVulnerability(
@@ -120,9 +120,9 @@ class TestSourceVulnerability:
         assert "10" in s
 
     def test_is_vulnerable(self):
-        from recheck.diagnostics.diagnostics import Diagnostics
-        from recheck.diagnostics.complexity import Complexity
-        from recheck.diagnostics.attack_pattern import AttackPattern
+        from redoctor.diagnostics.diagnostics import Diagnostics
+        from redoctor.diagnostics.complexity import Complexity
+        from redoctor.diagnostics.attack_pattern import AttackPattern
 
         diag = Diagnostics.vulnerable(
             source="^(a+)+$",

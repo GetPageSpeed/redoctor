@@ -2,8 +2,8 @@
 
 import pytest
 
-from recheck.config import Config
-from recheck.parser.flags import Flags
+from redoctor.config import Config
+from redoctor.parser.flags import Flags
 
 
 @pytest.fixture

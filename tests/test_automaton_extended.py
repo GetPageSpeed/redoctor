@@ -1,16 +1,16 @@
 """Extended automaton tests for increased coverage."""
 
 
-from recheck.parser.parser import parse
-from recheck.automaton.eps_nfa import EpsNFA, State, Transition, TransitionType
-from recheck.automaton.eps_nfa_builder import build_eps_nfa
-from recheck.automaton.ordered_nfa import OrderedNFA, NFAStatePair, build_product_nfa
-from recheck.automaton.complexity_analyzer import AmbiguityWitness
-from recheck.automaton.witness import WitnessGenerator, generate_attack_from_witness
-from recheck.automaton.checker import AutomatonChecker, check_with_automaton
-from recheck.diagnostics.complexity import Complexity
-from recheck.unicode.ichar import IChar
-from recheck.config import Config
+from redoctor.parser.parser import parse
+from redoctor.automaton.eps_nfa import EpsNFA, State, Transition, TransitionType
+from redoctor.automaton.eps_nfa_builder import build_eps_nfa
+from redoctor.automaton.ordered_nfa import OrderedNFA, NFAStatePair, build_product_nfa
+from redoctor.automaton.complexity_analyzer import AmbiguityWitness
+from redoctor.automaton.witness import WitnessGenerator, generate_attack_from_witness
+from redoctor.automaton.checker import AutomatonChecker, check_with_automaton
+from redoctor.diagnostics.complexity import Complexity
+from redoctor.unicode.ichar import IChar
+from redoctor.config import Config
 
 
 class TestStateExtended:
@@ -127,8 +127,8 @@ class TestNFABuilderExtended:
         assert nfa.size() > 0
 
     def test_build_unicode_property(self):
-        from recheck.parser.ast import UnicodeProperty, Pattern
-        from recheck.parser.flags import Flags
+        from redoctor.parser.ast import UnicodeProperty, Pattern
+        from redoctor.parser.flags import Flags
 
         prop = UnicodeProperty("Letter", negated=False)
         pattern = Pattern(prop, Flags(), "")
@@ -136,8 +136,8 @@ class TestNFABuilderExtended:
         assert nfa.size() > 0
 
     def test_build_negated_unicode_property(self):
-        from recheck.parser.ast import UnicodeProperty, Pattern
-        from recheck.parser.flags import Flags
+        from redoctor.parser.ast import UnicodeProperty, Pattern
+        from redoctor.parser.flags import Flags
 
         prop = UnicodeProperty("Letter", negated=True)
         pattern = Pattern(prop, Flags(), "")

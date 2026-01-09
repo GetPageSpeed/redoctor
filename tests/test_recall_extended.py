@@ -1,7 +1,7 @@
 """Extended recall tests for increased coverage."""
 
 
-from recheck.recall.validator import RecallValidator, ValidationResult, RecallResult
+from redoctor.recall.validator import RecallValidator, ValidationResult, RecallResult
 
 
 class TestRecallValidatorExtended:

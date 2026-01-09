@@ -1,7 +1,7 @@
 """Tests for recall validation."""
 
 
-from recheck.recall.validator import RecallValidator, ValidationResult, validate_attack
+from redoctor.recall.validator import RecallValidator, ValidationResult, validate_attack
 
 
 class TestRecallValidator:

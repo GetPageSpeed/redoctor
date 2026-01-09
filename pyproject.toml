@@ -11,9 +11,9 @@ python_functions = ["test_*"]
 addopts = "--tb=short"
 
 [tool.coverage.run]
-source = ["src/recheck"]
+source = ["src/redoctor"]
 branch = true
-omit = ["src/recheck/cli.py"]
+omit = ["src/redoctor/cli.py"]
 parallel = true
 
 [tool.coverage.report]
@@ -28,4 +28,4 @@ show_missing = true
 
 [tool.bandit]
 exclude_dirs = ["tests"]
-targets = ["src/recheck"]
+targets = ["src/redoctor"]

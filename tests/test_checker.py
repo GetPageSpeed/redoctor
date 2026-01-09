@@ -2,10 +2,10 @@
 
 import pytest
 
-from recheck import check, is_safe, is_vulnerable, Config, Diagnostics, Status
-from recheck.checker import HybridChecker, check_pattern
-from recheck.parser.parser import parse
-from recheck.parser.flags import Flags
+from redoctor import check, is_safe, is_vulnerable, Config, Diagnostics, Status
+from redoctor.checker import HybridChecker, check_pattern
+from redoctor.parser.parser import parse
+from redoctor.parser.flags import Flags
 
 
 class TestCheckFunction:

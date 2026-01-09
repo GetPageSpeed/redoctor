@@ -2,10 +2,10 @@
 
 import pytest
 
-from recheck.unicode.uchar import UChar, MIN_VALUE, MAX_VALUE, MAX_BMP
-from recheck.unicode.ichar import IChar
-from recheck.unicode.icharset import ICharSet
-from recheck.unicode.ustring import UString
+from redoctor.unicode.uchar import UChar, MIN_VALUE, MAX_VALUE, MAX_BMP
+from redoctor.unicode.ichar import IChar
+from redoctor.unicode.icharset import ICharSet
+from redoctor.unicode.ustring import UString
 
 
 class TestUCharExtended:

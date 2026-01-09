@@ -2,9 +2,9 @@
 
 import pytest
 
-from recheck.parser.parser import parse
-from recheck.parser.flags import Flags
-from recheck.parser.ast import (
+from redoctor.parser.parser import parse
+from redoctor.parser.flags import Flags
+from redoctor.parser.ast import (
     Char,
     Dot,
     CharClass,
@@ -26,7 +26,7 @@ from recheck.parser.ast import (
     WordBoundary,
     is_quantifiable,
 )
-from recheck.exceptions import ParseError
+from redoctor.exceptions import ParseError
 
 
 class TestFlagsExtended:

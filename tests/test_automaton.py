@@ -1,12 +1,12 @@
 """Tests for automaton infrastructure."""
 
 
-from recheck.parser.parser import parse
-from recheck.automaton.eps_nfa import EpsNFA, State, Transition, TransitionType
-from recheck.automaton.eps_nfa_builder import build_eps_nfa
-from recheck.automaton.ordered_nfa import OrderedNFA
-from recheck.automaton.complexity_analyzer import ComplexityAnalyzer
-from recheck.unicode.ichar import IChar
+from redoctor.parser.parser import parse
+from redoctor.automaton.eps_nfa import EpsNFA, State, Transition, TransitionType
+from redoctor.automaton.eps_nfa_builder import build_eps_nfa
+from redoctor.automaton.ordered_nfa import OrderedNFA
+from redoctor.automaton.complexity_analyzer import ComplexityAnalyzer
+from redoctor.unicode.ichar import IChar
 
 
 class TestState:

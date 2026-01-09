@@ -1,10 +1,10 @@
 """Extended diagnostics tests for increased coverage."""
 
 
-from recheck.diagnostics.complexity import Complexity
-from recheck.diagnostics.attack_pattern import AttackPattern
-from recheck.diagnostics.hotspot import Hotspot, HotspotSet
-from recheck.diagnostics.diagnostics import Diagnostics
+from redoctor.diagnostics.complexity import Complexity
+from redoctor.diagnostics.attack_pattern import AttackPattern
+from redoctor.diagnostics.hotspot import Hotspot, HotspotSet
+from redoctor.diagnostics.diagnostics import Diagnostics
 
 
 class TestComplexityExtended:

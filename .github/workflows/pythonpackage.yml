@@ -21,8 +21,8 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements.dev.txt
           pip install -e .
-          flake8 scripts/ src/recheck/ --count --select=E9,F63,F7,F82,F821 --show-source --statistics
-          python scripts/check_py36_compat.py src/recheck/*.py
+          flake8 scripts/ src/redoctor/ --count --select=E9,F63,F7,F82,F821 --show-source --statistics
+          python scripts/check_py36_compat.py src/redoctor/*.py
           pytest -v -n auto --timeout=60 tests/
 
   # Test on Python 3.10 (middle) and 3.13 (latest)

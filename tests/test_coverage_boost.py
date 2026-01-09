@@ -1,17 +1,17 @@
 """Additional tests to boost coverage for release."""
 
 
-from recheck import check, is_safe
-from recheck.config import Config
-from recheck.parser.parser import parse
-from recheck.parser.flags import Flags
-from recheck.vm.builder import build_program
-from recheck.vm.interpreter import Interpreter, MatchResult
-from recheck.vm.inst import Inst, OpCode
-from recheck.vm.program import Program
-from recheck.unicode.ichar import IChar
-from recheck.unicode.uchar import UChar
-from recheck.unicode.ustring import UString
+from redoctor import check, is_safe
+from redoctor.config import Config
+from redoctor.parser.parser import parse
+from redoctor.parser.flags import Flags
+from redoctor.vm.builder import build_program
+from redoctor.vm.interpreter import Interpreter, MatchResult
+from redoctor.vm.inst import Inst, OpCode
+from redoctor.vm.program import Program
+from redoctor.unicode.ichar import IChar
+from redoctor.unicode.uchar import UChar
+from redoctor.unicode.ustring import UString
 
 
 class TestInterpreterCoverage:
@@ -91,7 +91,7 @@ class TestBuilderCoverage:
     """Tests to cover more builder paths."""
 
     def test_build_unicode_property(self):
-        from recheck.parser.ast import UnicodeProperty, Pattern as ASTPattern
+        from redoctor.parser.ast import UnicodeProperty, Pattern as ASTPattern
 
         prop = UnicodeProperty("L", negated=False)
         pattern = ASTPattern(prop, Flags(), r"\p{L}")
@@ -143,15 +143,15 @@ class TestFuzzCoverage:
     """Tests to cover more fuzz paths."""
 
     def test_fstring_slice_with_end(self):
-        from recheck.fuzz.fstring import FString
+        from redoctor.fuzz.fstring import FString
 
         s = FString.from_str("hello")
         s2 = s.slice(1, 4)
         assert str(s2) == "ell"
 
     def test_pump_mutator_pump_length(self):
-        from recheck.fuzz.mutators import PumpMutator
-        from recheck.fuzz.fstring import FString
+        from redoctor.fuzz.mutators import PumpMutator
+        from redoctor.fuzz.fstring import FString
 
         mutator = PumpMutator(max_pump_length=10)
         s = FString.from_str("abcdefghij")
@@ -169,7 +169,7 @@ class TestDiagnosticsCoverage:
         assert "status" in data
 
     def test_hotspot_from_pattern(self):
-        from recheck.diagnostics.hotspot import Hotspot
+        from redoctor.diagnostics.hotspot import Hotspot
 
         h = Hotspot(0, 5, "hello")
         assert h.text == "hello"
@@ -192,7 +192,7 @@ class TestEndToEnd:
 
     def test_is_safe_is_vulnerable(self):
         # These should work - use quick config to skip recall validation
-        from recheck import Config
+        from redoctor import Config
 
         config = Config.quick()
         assert is_safe(r"^[a-z]+$", config=config) or True  # May be safe or unknown
@@ -203,13 +203,13 @@ class TestComplexityAnalyzerCoverage:
     """Tests for complexity analyzer coverage."""
 
     def test_polynomial_detection(self):
-        from recheck.automaton.checker import check_with_automaton
+        from redoctor.automaton.checker import check_with_automaton
 
         result = check_with_automaton(r"^[a-z]+[0-9]+$")
         assert result is not None
 
     def test_exponential_detection(self):
-        from recheck.automaton.checker import check_with_automaton
+        from redoctor.automaton.checker import check_with_automaton
 
         result = check_with_automaton(r"^(a+)+$")
         assert result is not None
@@ -219,7 +219,7 @@ class TestFuzzComplexityCoverage:
     """Tests to cover fuzz complexity estimation."""
 
     def test_fuzz_check_triggers_complexity(self):
-        from recheck.fuzz.checker import FuzzChecker
+        from redoctor.fuzz.checker import FuzzChecker
 
         # Create a checker and directly test complexity estimation
         config = Config(timeout=2.0, max_iterations=500)
@@ -230,7 +230,7 @@ class TestFuzzComplexityCoverage:
         assert result is not None
 
     def test_fuzz_long_running(self):
-        from recheck.fuzz.checker import FuzzChecker
+        from redoctor.fuzz.checker import FuzzChecker
 
         config = Config(timeout=1.0, max_iterations=200)
         checker = FuzzChecker(config)
@@ -280,7 +280,7 @@ class TestSeederCoverage:
     """Tests for seeder coverage."""
 
     def test_static_seeder_char_class_range(self):
-        from recheck.fuzz.seeder import StaticSeeder
+        from redoctor.fuzz.seeder import StaticSeeder
 
         pattern = parse(r"[a-z][0-9]")
         seeder = StaticSeeder()
@@ -288,7 +288,7 @@ class TestSeederCoverage:
         assert len(seeds) > 0
 
     def test_static_seeder_negated_class(self):
-        from recheck.fuzz.seeder import StaticSeeder
+        from redoctor.fuzz.seeder import StaticSeeder
 
         pattern = parse(r"[^abc]")
         seeder = StaticSeeder()
@@ -296,7 +296,7 @@ class TestSeederCoverage:
         assert len(seeds) >= 0  # May generate empty for negated
 
     def test_static_seeder_alternation(self):
-        from recheck.fuzz.seeder import StaticSeeder
+        from redoctor.fuzz.seeder import StaticSeeder
 
         pattern = parse(r"foo|bar|baz")
         seeder = StaticSeeder()
@@ -308,8 +308,8 @@ class TestMutatorsCoverage:
     """Tests for mutators coverage."""
 
     def test_random_mutator_with_seed(self):
-        from recheck.fuzz.mutators import RandomMutator
-        from recheck.fuzz.fstring import FString
+        from redoctor.fuzz.mutators import RandomMutator
+        from redoctor.fuzz.fstring import FString
 
         mutator = RandomMutator(seed=12345)
         s = FString.from_str("test")
@@ -317,8 +317,8 @@ class TestMutatorsCoverage:
         assert len(m1) > 0
 
     def test_combined_mutator_multiple(self):
-        from recheck.fuzz.mutators import RandomMutator, PumpMutator, CombinedMutator
-        from recheck.fuzz.fstring import FString
+        from redoctor.fuzz.mutators import RandomMutator, PumpMutator, CombinedMutator
+        from redoctor.fuzz.fstring import FString
 
         mutators = [RandomMutator(seed=1), PumpMutator()]
         combined = CombinedMutator(mutators=mutators)
@@ -355,21 +355,21 @@ class TestNFABuilderCoverage:
     """Tests for NFA builder coverage."""
 
     def test_build_complex_pattern(self):
-        from recheck.automaton.eps_nfa_builder import build_eps_nfa
+        from redoctor.automaton.eps_nfa_builder import build_eps_nfa
 
         pattern = parse(r"^(a+|b+)+[c-z]*\d{2,5}$")
         nfa = build_eps_nfa(pattern)
         assert nfa.size() > 0
 
     def test_build_atomic_group(self):
-        from recheck.automaton.eps_nfa_builder import build_eps_nfa
+        from redoctor.automaton.eps_nfa_builder import build_eps_nfa
 
         pattern = parse(r"(?>abc)")
         nfa = build_eps_nfa(pattern)
         assert nfa.size() > 0
 
     def test_build_negative_lookahead(self):
-        from recheck.automaton.eps_nfa_builder import build_eps_nfa
+        from redoctor.automaton.eps_nfa_builder import build_eps_nfa
 
         pattern = parse(r"(?!abc)")
         nfa = build_eps_nfa(pattern)
@@ -380,14 +380,14 @@ class TestValidatorCoverage:
     """Tests for validator coverage."""
 
     def test_validator_timeout_short(self):
-        from recheck.recall.validator import RecallValidator
+        from redoctor.recall.validator import RecallValidator
 
         validator = RecallValidator(timeout=0.001)
         result = validator.validate(r"^[a-z]+$", "a" * 100)
         assert result is not None
 
     def test_validator_with_attack_string(self):
-        from recheck.recall.validator import RecallValidator
+        from redoctor.recall.validator import RecallValidator
 
         validator = RecallValidator(timeout=0.1)
         # Validate with a specific attack string

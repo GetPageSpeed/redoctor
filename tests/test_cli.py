@@ -9,7 +9,7 @@ class TestCLI:
 
     def run_cli(self, args, input_text=None):
         """Run the CLI and return result."""
-        cmd = [sys.executable, "-m", "recheck.cli"] + args
+        cmd = [sys.executable, "-m", "redoctor.cli"] + args
         result = subprocess.run(
             cmd,
             capture_output=True,
@@ -30,7 +30,7 @@ class TestCLI:
         """Test --version flag."""
         result = self.run_cli(["--version"])
         assert result.returncode == 0
-        assert "recheck" in result.stdout
+        assert "ReDoctor" in result.stdout or "redoctor" in result.stdout.lower()
 
     def test_check_safe_pattern(self):
         """Test checking a safe pattern."""
@@ -96,10 +96,10 @@ class TestCLIEntryPoint:
     def test_module_runnable(self):
         """Test that module is runnable with python -m."""
         result = subprocess.run(
-            [sys.executable, "-m", "recheck.cli", "--help"],
+            [sys.executable, "-m", "redoctor.cli", "--help"],
             capture_output=True,
             text=True,
             timeout=10,
         )
         assert result.returncode == 0
-        assert "recheck" in result.stdout.lower()
+        assert "redoctor" in result.stdout.lower()
