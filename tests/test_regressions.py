@@ -114,3 +114,24 @@ class TestRealWorldPatterns:
         result = check(pattern, config=Config.quick())
         assert result is not None
         assert result.status.value in ("safe", "unknown")
+
+
+class TestGitHubIssues:
+    """Regression tests for reported GitHub issues."""
+
+    def test_issue_2_unanchored_nested_plus_is_vulnerable(self):
+        """GitHub issue #2: (a+)+ should be detected as vulnerable.
+
+        The pattern (a+)+ without anchors was incorrectly reported as safe
+        with O(n) complexity. It should be detected as vulnerable with
+        exponential complexity due to nested quantifier ambiguity.
+
+        Note: We use skip_recall=True because recall validation uses re.match()
+        which doesn't require full-string matching, so the attack string doesn't
+        trigger backtracking. The automaton analysis correctly identifies this
+        as vulnerable in full-match contexts (e.g., re.fullmatch()).
+        """
+        result = check(r"(a+)+", config=Config(skip_recall=True))
+        assert result.is_vulnerable
+        assert result.complexity is not None
+        assert result.complexity.is_exponential

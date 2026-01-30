@@ -326,14 +326,9 @@ class SCCChecker:
             # Has end anchor OR requires continuation → exploitable
             return True
 
-        # AUTO mode: use anchor and continuation detection
-        if not self.has_end_anchor and not self.requires_continuation:
-            # No end anchor and no continuation → can escape early → not exploitable
-            # This is the key insight: (a*)* without $ is safe in partial match
-            # But ^([^@]+)+@ IS exploitable because of the @ after the quantifier
-            return False
-
-        # Has end anchor OR requires continuation → must try all combinations → exploitable
+        # AUTO mode: conservative approach for security analysis
+        # Multi-transitions indicate nested quantifier ambiguity - report as exploitable
+        # Users who want lenient analysis can use match_mode=PARTIAL
         return True
 
     def _check_eda_with_pair_graph(
