@@ -102,6 +102,21 @@ class StaticSeeder(Seeder):
                 return [FString([ord(" " if not node.negated else "a")])]
 
         if isinstance(node, CharClass):
+            if node.negated:
+                # For negated classes, generate a character NOT in the class
+                # Collect chars in the class to avoid them
+                class_chars = set()
+                for item in node.items:
+                    if isinstance(item, Char):
+                        class_chars.add(item.char)
+                    elif isinstance(item, CharClassRange):
+                        for c in range(item.start, min(item.end + 1, item.start + 128)):
+                            class_chars.add(c)
+                # Pick a fallback char outside the class
+                for candidate in [ord("!"), ord("X"), ord("0"), ord("a"), ord(" ")]:
+                    if candidate not in class_chars:
+                        return [FString([candidate])]
+                return [FString([ord("\x01")])]
             if node.items:
                 first = node.items[0]
                 if isinstance(first, Char):

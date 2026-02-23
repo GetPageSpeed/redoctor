@@ -31,6 +31,7 @@ class Thread:
     sp: int
     captures: List[int] = field(default_factory=list)
     counters: List[int] = field(default_factory=list)
+    atomic_saves: List[int] = field(default_factory=list)
 
     def copy(self) -> "Thread":
         """Create a copy of this thread."""
@@ -39,6 +40,7 @@ class Thread:
             sp=self.sp,
             captures=list(self.captures),
             counters=list(self.counters),
+            atomic_saves=list(self.atomic_saves),
         )
 
 
@@ -155,9 +157,13 @@ class Interpreter:
                 current.pc += 1
 
             elif inst.op == OpCode.LINE_START:
-                if current.sp == 0 or (
-                    current.sp > 0 and chars[current.sp - 1] == ord("\n")
-                ):
+                if self.program.multiline:
+                    ok = current.sp == 0 or (
+                        current.sp > 0 and chars[current.sp - 1] == ord("\n")
+                    )
+                else:
+                    ok = current.sp == 0
+                if ok:
                     current.pc += 1
                 else:
                     if stack:
@@ -166,9 +172,15 @@ class Interpreter:
                         return MatchResult.NO_MATCH, self.steps
 
             elif inst.op == OpCode.LINE_END:
-                if current.sp == len(chars) or (
-                    current.sp < len(chars) and chars[current.sp] == ord("\n")
-                ):
+                if self.program.multiline:
+                    ok = current.sp == len(chars) or (
+                        current.sp < len(chars) and chars[current.sp] == ord("\n")
+                    )
+                else:
+                    ok = current.sp == len(chars) or (
+                        current.sp == len(chars) - 1 and chars[current.sp] == ord("\n")
+                    )
+                if ok:
                     current.pc += 1
                 else:
                     if stack:
@@ -218,6 +230,36 @@ class Interpreter:
                         current.pc += 1
                 else:
                     current.pc += 1
+
+            elif inst.op == OpCode.STRING_START:
+                if current.sp == 0:
+                    current.pc += 1
+                else:
+                    if stack:
+                        current = stack.pop()
+                    else:
+                        return MatchResult.NO_MATCH, self.steps
+
+            elif inst.op == OpCode.STRING_END:
+                if current.sp == len(chars):
+                    current.pc += 1
+                else:
+                    if stack:
+                        current = stack.pop()
+                    else:
+                        return MatchResult.NO_MATCH, self.steps
+
+            elif inst.op == OpCode.ATOMIC_START:
+                # Save current stack size so ATOMIC_END can trim back
+                current.atomic_saves.append(len(stack))
+                current.pc += 1
+
+            elif inst.op == OpCode.ATOMIC_END:
+                # Discard all backtracking alternatives created inside
+                if current.atomic_saves:
+                    saved_size = current.atomic_saves.pop()
+                    del stack[saved_size:]
+                current.pc += 1
 
             elif inst.op == OpCode.FAIL:
                 if stack:

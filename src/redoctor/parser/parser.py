@@ -1,5 +1,6 @@
 """Regex parser for Python dialect."""
 
+from dataclasses import replace
 from typing import List, Optional, Tuple
 
 from redoctor.parser.ast import (
@@ -44,12 +45,15 @@ from redoctor.exceptions import ParseError
 class Parser:
     """Regex parser."""
 
+    MAX_DEPTH = 200
+
     def __init__(self, source: str, flags: Flags = None):
         self.source = source
         self.pos = 0
         self.flags = flags or Flags()
         self.capture_count = 0
         self.named_captures = {}
+        self._depth = 0
 
     def parse(self) -> Pattern:
         """Parse the entire pattern."""
@@ -155,9 +159,14 @@ class Parser:
             self._advance()
             return Char(ord(c))
 
-        # Quantifier without atom is an error
-        if c in "*+?{":
+        # Quantifier without preceding atom is an error for *, +, ?
+        if c in "*+?":
             raise ParseError("Nothing to repeat", self.pos)
+
+        # Bare { treated as literal (Python re behavior)
+        if c == "{":
+            self._advance()
+            return Char(ord("{"))
 
         return None
 
@@ -198,7 +207,7 @@ class Parser:
         # Backreferences
         if c.isdigit() and c != "0":
             num = c
-            while self._current().isdigit():
+            while self._current().isdigit() and len(num) < 10:
                 num += self._advance()
             return Backref(int(num))
 
@@ -208,10 +217,12 @@ class Parser:
             if self._current() == "<":
                 self._advance()
                 name = ""
-                while self._current() and self._current() != ">":
+                while self._current() and self._current() != ">" and len(name) < 256:
                     name += self._advance()
                 if not self._current():
                     raise ParseError("Unterminated group name", self.pos)
+                if self._current() != ">":
+                    raise ParseError("Group name too long", self.pos)
                 self._expect(">")
                 if name.isdigit():
                     return Backref(int(name))
@@ -370,19 +381,25 @@ class Parser:
 
     def _parse_group(self) -> Node:
         """Parse a group (...)."""
-        self._expect("(")
+        self._depth += 1
+        if self._depth > self.MAX_DEPTH:
+            raise ParseError("Pattern nesting too deep", self.pos)
+        try:
+            self._expect("(")
 
-        # Check for special group types
-        if self._current() == "?":
-            self._advance()
-            return self._parse_special_group()
+            # Check for special group types
+            if self._current() == "?":
+                self._advance()
+                return self._parse_special_group()
 
-        # Regular capturing group
-        self.capture_count += 1
-        index = self.capture_count
-        child = self._parse_disjunction()
-        self._expect(")")
-        return Capture(child, index)
+            # Regular capturing group
+            self.capture_count += 1
+            index = self.capture_count
+            child = self._parse_disjunction()
+            self._expect(")")
+            return Capture(child, index)
+        finally:
+            self._depth -= 1
 
     def _parse_special_group(self) -> Node:
         """Parse a special group (?...)."""
@@ -432,10 +449,12 @@ class Parser:
             if c2 == "<":
                 self._advance()
                 name = ""
-                while self._current() and self._current() != ">":
+                while self._current() and self._current() != ">" and len(name) < 256:
                     name += self._advance()
                 if not self._current():
                     raise ParseError("Unterminated group name", self.pos)
+                if self._current() != ">":
+                    raise ParseError("Group name too long", self.pos)
                 self._expect(">")
                 self.capture_count += 1
                 index = self.capture_count
@@ -447,7 +466,7 @@ class Parser:
             if c2 == "=":
                 self._advance()
                 name = ""
-                while self._current() and self._current() != ")":
+                while self._current() and self._current() != ")" and len(name) < 256:
                     name += self._advance()
                 self._expect(")")
                 return NamedBackref(name)
@@ -461,8 +480,8 @@ class Parser:
 
         # Flags group (?imsx:...) or (?imsx)
         if c in "imsxauL-":
-            enable_flags = Flags()
-            disable_flags = Flags()
+            enable_flags = Flags(unicode=False)
+            disable_flags = Flags(unicode=False)
             negating = False
 
             while self._current() in "imsxauL-":
@@ -482,9 +501,9 @@ class Parser:
                 if fc in flag_map:
                     attr = flag_map[fc]
                     if negating:
-                        disable_flags = Flags(**{attr: True})
+                        disable_flags = replace(disable_flags, **{attr: True})
                     else:
-                        enable_flags = Flags(**{attr: True})
+                        enable_flags = replace(enable_flags, **{attr: True})
 
             if self._current() == ":":
                 self._advance()
@@ -494,7 +513,7 @@ class Parser:
             elif self._current() == ")":
                 self._advance()
                 # Flag-only group modifies global flags
-                self.flags = self.flags | enable_flags
+                self.flags = (self.flags | enable_flags).subtract(disable_flags)
                 return FlagsGroup(None, enable_flags, disable_flags)
 
         raise ParseError(f"Unknown group type: (?{c}...)", self.pos)
@@ -536,6 +555,7 @@ class Parser:
 
     def _parse_bounded_quantifier(self, node: Node) -> Node:
         """Parse {n}, {n,}, or {n,m} quantifier."""
+        saved_pos = self.pos
         self._expect("{")
 
         # Parse min
@@ -545,7 +565,7 @@ class Parser:
 
         if not min_str:
             # Not a quantifier, treat { as literal
-            self.pos -= 1
+            self.pos = saved_pos
             return node
 
         min_val = int(min_str)
@@ -559,8 +579,9 @@ class Parser:
             max_val = int(max_str) if max_str else None
 
         if self._current() != "}":
-            # Not a quantifier, backtrack
-            raise ParseError("Invalid quantifier", self.pos)
+            # Not a valid quantifier, backtrack and treat { as literal
+            self.pos = saved_pos
+            return node
         self._expect("}")
 
         greedy, possessive = self._parse_quantifier_suffix()

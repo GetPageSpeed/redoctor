@@ -278,9 +278,11 @@ class TestParseErrors:
         with pytest.raises(ParseError):
             parse("*")
 
-    def test_invalid_quantifier(self):
-        with pytest.raises(ParseError):
-            parse("a{abc}")
+    def test_invalid_quantifier_treated_as_literal(self):
+        """Unmatched { is treated as literal, matching Python re behavior."""
+        result = parse("a{abc}")
+        # Should parse successfully — { treated as literal char
+        assert result is not None
 
     def test_unclosed_char_class(self):
         with pytest.raises(ParseError):

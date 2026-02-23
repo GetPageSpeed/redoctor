@@ -22,9 +22,9 @@ from redoctor.diagnostics.diagnostics import Diagnostics, Status
 from redoctor.diagnostics.attack_pattern import AttackPattern
 from redoctor.diagnostics.hotspot import Hotspot
 from redoctor.parser.flags import Flags
-from redoctor.exceptions import RedoctorError, ParseError, TimeoutError
+from redoctor.exceptions import RedoctorError, ParseError, AnalysisTimeoutError
 
-__version__ = "0.1.0"
+__version__ = "0.1.4"
 
 __all__ = [
     # Main API
@@ -49,7 +49,7 @@ __all__ = [
     # Exceptions
     "RedoctorError",
     "ParseError",
-    "TimeoutError",
+    "AnalysisTimeoutError",
     # Version
     "__version__",
 ]

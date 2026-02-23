@@ -22,6 +22,8 @@ class OpCode(Enum):
     # Assertions
     LINE_START = auto()  # ^
     LINE_END = auto()  # $
+    STRING_START = auto()  # \A
+    STRING_END = auto()  # \Z
     WORD_BOUNDARY = auto()  # \b
     NON_WORD_BOUNDARY = auto()  # \B
 
@@ -40,6 +42,10 @@ class OpCode(Enum):
     NEG_LOOKAHEAD_END = auto()
     LOOKBEHIND_START = auto()
     LOOKBEHIND_END = auto()
+
+    # Atomic groups
+    ATOMIC_START = auto()  # Save stack size
+    ATOMIC_END = auto()  # Trim stack to saved size
 
     # Backreference
     BACKREF = auto()  # Match backreference
@@ -147,6 +153,26 @@ class Inst:
     def backref(cls, index: int, label: str = "") -> "Inst":
         """Create a BACKREF instruction."""
         return cls(OpCode.BACKREF, backref=index, label=label)
+
+    @classmethod
+    def string_start(cls, label: str = "") -> "Inst":
+        """Create a STRING_START instruction."""
+        return cls(OpCode.STRING_START, label=label)
+
+    @classmethod
+    def string_end(cls, label: str = "") -> "Inst":
+        """Create a STRING_END instruction."""
+        return cls(OpCode.STRING_END, label=label)
+
+    @classmethod
+    def atomic_start(cls, label: str = "") -> "Inst":
+        """Create an ATOMIC_START instruction."""
+        return cls(OpCode.ATOMIC_START, label=label)
+
+    @classmethod
+    def atomic_end(cls, label: str = "") -> "Inst":
+        """Create an ATOMIC_END instruction."""
+        return cls(OpCode.ATOMIC_END, label=label)
 
     @classmethod
     def fail(cls, label: str = "") -> "Inst":

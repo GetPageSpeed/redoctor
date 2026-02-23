@@ -24,10 +24,15 @@ class ParseError(RedoctorError):
         return super().__str__()
 
 
-class TimeoutError(RedoctorError):
+class AnalysisTimeoutError(RedoctorError):
     """Raised when analysis times out."""
 
     pass
+
+
+# Backwards compatibility alias (intentionally does NOT shadow builtins.TimeoutError
+# because that would break code doing: from redoctor.exceptions import TimeoutError)
+RecheckTimeoutError = AnalysisTimeoutError
 
 
 class CancelledException(RedoctorError):

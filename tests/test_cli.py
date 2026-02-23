@@ -92,6 +92,49 @@ class TestCLI:
         assert result.returncode in (0, 1)
 
 
+class TestCLIExitCodes:
+    """Test CLI exit code semantics for batch mode."""
+
+    def run_cli(self, args, input_text=None):
+        """Run the CLI and return result."""
+        cmd = [sys.executable, "-m", "redoctor.cli"] + args
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            input=input_text,
+            timeout=30,
+        )
+        return result
+
+    def test_exit_code_0_safe(self):
+        """Exit code 0 for safe patterns."""
+        result = self.run_cli(["--quiet", "--stdin"], input_text="^hello$\n")
+        assert result.returncode == 0
+
+    def test_exit_code_1_vulnerable(self):
+        """Exit code 1 for vulnerable patterns."""
+        result = self.run_cli(["--quiet", "--stdin"], input_text="^(a+)+$\n")
+        assert result.returncode == 1
+
+    def test_exit_code_2_error_only(self):
+        """Exit code 2 for error-only input."""
+        result = self.run_cli(["--quiet", "--stdin"], input_text="(unclosed\n")
+        assert result.returncode == 2
+
+    def test_exit_code_3_both_error_and_vulnerable(self):
+        """Exit code 3 when both errors and vulnerabilities are found."""
+        patterns = "^(a+)+$\n(unclosed\n"
+        result = self.run_cli(["--quiet", "--stdin"], input_text=patterns)
+        assert result.returncode == 3
+
+    def test_quiet_help_text_documents_exit_codes(self):
+        """Help text should document all exit codes including 3."""
+        result = self.run_cli(["--help"])
+        assert "3=both" in result.stdout
+
+
 class TestCLIEntryPoint:
     """Test CLI entry point."""
 

@@ -115,95 +115,6 @@ class ComplexityAnalyzer:
 
         return Complexity.safe(), None
 
-    def _build_multi_transition_witness(self) -> Optional[AmbiguityWitness]:
-        """Build a witness from multi-transition information.
-
-        Multi-transitions indicate that multiple epsilon paths from the same
-        state lead to the same character transition. This is the pattern for
-        nested quantifiers like (a+)+ where:
-        - After reading 'a' and being at state S
-        - We can continue the inner loop (one path)
-        - Or exit inner and re-enter via outer loop (another path)
-        """
-        if not self.ordered_nfa.multi_transitions:
-            return None
-
-        # Get the first multi-transition
-        for (from_state, to_state), count in self.ordered_nfa.multi_transitions.items():
-            if count > 1:
-                # Find a sample character for this transition
-                sample_char = ord("a")
-                for trans in self.ordered_nfa.get_transitions(from_state):
-                    if trans.target == to_state and trans.char:
-                        s = trans.char.sample()
-                        if s is not None:
-                            sample_char = s
-                            break
-
-                # Build prefix: path from initial to from_state
-                prefix = self._find_path_to_state(from_state)
-
-                # Build pump: one character that uses the multi-transition
-                pump = [sample_char]
-
-                # Build suffix: non-matching character
-                suffix = [ord("!")]
-
-                return AmbiguityWitness(
-                    prefix=prefix,
-                    pump=pump,
-                    suffix=suffix,
-                    state1=from_state,
-                    state2=to_state,
-                )
-        return None
-
-    def _find_path_to_state(self, target: State) -> List[int]:
-        """Find a path from initial state to target state."""
-        if self.ordered_nfa.initial is None:
-            return []
-        if self.ordered_nfa.initial == target:
-            return []
-
-        visited: Set[State] = set()
-        queue: deque[Tuple[State, List[int]]] = deque([(self.ordered_nfa.initial, [])])
-
-        while queue:
-            state, path = queue.popleft()
-            if state == target:
-                return path
-            if state in visited:
-                continue
-            visited.add(state)
-
-            for trans in self.ordered_nfa.get_transitions(state):
-                if trans.char:
-                    sample = trans.char.sample()
-                    if sample is not None:
-                        queue.append((trans.target, path + [sample]))
-
-        return []
-
-    def _check_exponential_ambiguity_with_product(
-        self,
-        divergent_pairs: List[NFAStatePair],
-        product_trans: Dict[NFAStatePair, List[Tuple[IChar, NFAStatePair]]],
-    ) -> Optional[AmbiguityWitness]:
-        """Check for EDA using pre-computed product automaton."""
-        for pair in divergent_pairs:
-            cycle = self._find_cycle_in_product(pair, product_trans)
-            if cycle and len(cycle) > 0:
-                prefix = self._find_path_to_pair(pair, product_trans)
-                suffix = self._find_path_to_accepting(pair, product_trans)
-                return AmbiguityWitness(
-                    prefix=prefix,
-                    pump=cycle,
-                    suffix=suffix,
-                    state1=pair.state1,
-                    state2=pair.state2,
-                )
-        return None
-
     def _check_polynomial_ambiguity_with_product(
         self,
         divergent_pairs: List[NFAStatePair],
@@ -320,24 +231,35 @@ class ComplexityAnalyzer:
         start: NFAStatePair,
         transitions: Dict[NFAStatePair, List[Tuple[IChar, NFAStatePair]]],
     ) -> List[int]:
-        """Find a cycle starting and ending at the given pair."""
+        """Find a cycle starting and ending at the given pair.
+
+        Uses BFS from the immediate successors of *start* so that each
+        intermediate node is visited at most once while still allowing
+        multiple successors to independently search for a path back.
+        """
+        # Seed the BFS with all direct successors of start
+        queue: deque[Tuple[NFAStatePair, List[int]]] = deque()
+        for char, next_pair in transitions.get(start, []):
+            sample = char.sample()
+            if sample is not None:
+                queue.append((next_pair, [sample]))
+
         visited: Set[NFAStatePair] = set()
-        stack: List[Tuple[NFAStatePair, List[int]]] = [(start, [])]
 
-        while stack:
-            pair, chars = stack.pop()
+        while queue:
+            pair, chars = queue.popleft()
 
-            if pair == start and chars:
+            if pair == start:
                 return chars
 
-            if pair in visited and pair != start:
+            if pair in visited:
                 continue
             visited.add(pair)
 
             for char, next_pair in transitions.get(pair, []):
                 sample = char.sample()
                 if sample is not None:
-                    stack.append((next_pair, chars + [sample]))
+                    queue.append((next_pair, chars + [sample]))
 
         return []
 

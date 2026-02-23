@@ -7,6 +7,7 @@ This implements the precise EDA/IDA detection algorithm from recheck:
 4. IDA: Look for divergent chains between SCCs
 """
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
@@ -16,6 +17,8 @@ from redoctor.automaton.eps_nfa import EpsNFA
 from redoctor.automaton.nfa import OrderedNFARecheck, NFAwLA
 from redoctor.diagnostics.complexity import Complexity
 from redoctor.unicode.ichar import IChar
+
+logger = logging.getLogger(__name__)
 
 
 class MatchMode(Enum):
@@ -217,8 +220,12 @@ class SCCChecker:
 
             return Complexity.safe(), None
 
+        except (ValueError, KeyError, IndexError):
+            # Known non-critical exceptions from NFA construction/analysis
+            logger.debug("SCC analysis failed with non-critical error", exc_info=True)
+            return Complexity.safe(), None
         except Exception:
-            # Any error during analysis - return safe to be conservative
+            logger.error("Unexpected error during SCC analysis", exc_info=True)
             return Complexity.safe(), None
 
     def _build_quick_witness(self) -> AmbiguityWitness:
@@ -400,10 +407,6 @@ class SCCChecker:
                             # Found EDA: diagonal -> off-diagonal -> diagonal
                             return (scc, path + [next_char] if path else [next_char])
 
-                        # Also check if next leads to a diagonal we already saw
-                        if next_pair in visited and next_pair[0] == next_pair[1]:
-                            return (scc, path + [next_char] if path else [next_char])
-
                 # Continue BFS
                 for next_char, next_pair in pair_edges.get(current, []):
                     if next_pair not in visited:
@@ -416,50 +419,10 @@ class SCCChecker:
     ) -> Optional[Tuple[int, List[Tuple[List[NFAState], List[NFAChar]]]]]:
         """Check for IDA (Polynomial Degree of Ambiguity).
 
-        IDA exists when there's a chain of SCCs with divergence accumulating.
-        The degree is the length of the longest such chain.
+        Note: This is a stub. IDA detection is handled by the product
+        automaton in ComplexityAnalyzer._check_polynomial_ambiguity_with_product.
         """
-        if not self.sccs or not self.graph:
-            return None
-
-        # Compute the IDA degree for each SCC using dynamic programming
-        scc_degrees: Dict[int, int] = {}
-        scc_pumps: Dict[int, List[Tuple[List[NFAState], List[NFAChar]]]] = {}
-
-        # Sort SCCs topologically (reversed order of Tarjan's output)
-        for i, scc in enumerate(self.sccs):
-            if self.graph.is_atom(scc):
-                scc_degrees[i] = 0
-                scc_pumps[i] = []
-            else:
-                scc_degrees[i] = 1
-                scc_pumps[i] = []
-
-        # Check for IDA chains between SCCs
-        # (This is a simplified version - full implementation would need G3 graph)
-        max_degree = max(scc_degrees.values()) if scc_degrees else 0
-
-        if max_degree <= 1:
-            return None
-
-        # Collect pumps for the max degree chain
-        pumps: List[Tuple[List[NFAState], List[NFAChar]]] = []
-        for i, degree in scc_degrees.items():
-            if degree == max_degree:
-                scc = self.sccs[i]
-                # Get a sample char from this SCC
-                sample_chars: List[NFAChar] = []
-                for state in scc:
-                    for char, target in self.graph.neighbors.get(state, []):
-                        if target in set(scc):
-                            sample_chars.append(char)
-                            break
-                    if sample_chars:
-                        break
-                pumps.append((scc, sample_chars))
-                break
-
-        return (max_degree, pumps) if pumps else None
+        return None
 
     def _build_witness(
         self, eda_result: Tuple[List[NFAState], List[NFAChar]]

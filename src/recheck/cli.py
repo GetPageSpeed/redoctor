@@ -3,8 +3,9 @@
 import argparse
 import sys
 
-from recheck import check, Config
-from recheck.parser.flags import Flags
+from redoctor import check, Config
+from redoctor.diagnostics.diagnostics import Status
+from redoctor.parser.flags import Flags
 
 
 def main():
@@ -60,7 +61,7 @@ Examples:
         "-q",
         "--quiet",
         action="store_true",
-        help="Only output status (exit code 0=safe, 1=vulnerable, 2=error)",
+        help="Only output status (exit code 0=safe, 1=vulnerable, 2=error, 3=both)",
     )
     parser.add_argument(
         "-v",
@@ -77,7 +78,7 @@ Examples:
     args = parser.parse_args()
 
     if args.version:
-        from recheck import __version__
+        from redoctor import __version__
 
         print("recheck {0}".format(__version__))
         return 0
@@ -113,6 +114,17 @@ Examples:
         try:
             result = check(pattern, flags=flags, config=config)
 
+            if result.status == Status.ERROR:
+                has_error = True
+                if not args.quiet:
+                    print(
+                        "ERROR: {0}: {1}".format(
+                            pattern, result.error or "analysis error"
+                        ),
+                        file=sys.stderr,
+                    )
+                continue
+
             if args.quiet:
                 # Quiet mode: just track status
                 if result.is_vulnerable:
@@ -129,7 +141,7 @@ Examples:
                     print("  Pump:   {0!r}".format(result.attack_pattern.pump))
                     print("  Suffix: {0!r}".format(result.attack_pattern.suffix))
                     # Generate example attack string
-                    attack = result.attack_pattern.build_attack_string(20)
+                    attack = result.attack_pattern.build(20)
                     print("  Example: {0!r}".format(attack))
                 if result.hotspot:
                     print("Hotspot: {0}".format(result.hotspot))
@@ -141,7 +153,7 @@ Examples:
                     if result.complexity:
                         print("  Complexity: {0}".format(result.complexity))
                     if result.attack_pattern:
-                        attack = result.attack_pattern.build_attack_string(20)
+                        attack = result.attack_pattern.build(20)
                         print("  Attack: {0!r}".format(attack))
                     has_vulnerable = True
                 elif result.is_safe:
@@ -155,7 +167,9 @@ Examples:
                 print("ERROR: {0}: {1}".format(pattern, e), file=sys.stderr)
 
     # Return appropriate exit code
-    if has_error:
+    if has_error and has_vulnerable:
+        return 3
+    elif has_error:
         return 2
     elif has_vulnerable:
         return 1

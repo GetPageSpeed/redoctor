@@ -1,5 +1,6 @@
 """Extended recall tests for increased coverage."""
 
+import time
 
 from redoctor.recall.validator import RecallValidator, ValidationResult, RecallResult
 
@@ -27,6 +28,17 @@ class TestRecallValidatorExtended:
             ValidationResult.CONFIRMED,
             ValidationResult.TIMEOUT,
         )
+
+    def test_timeout_returns_promptly(self):
+        """Regression: shutdown(wait=True) blocked until hung thread completed."""
+        # (a+)+ with non-matching suffix triggers catastrophic backtracking
+        validator = RecallValidator(timeout=0.5)
+        start = time.perf_counter()
+        result = validator.validate(r"^(a+)+$", "a" * 25 + "!")
+        elapsed = time.perf_counter() - start
+        # Must return within a reasonable margin of the timeout, not hang
+        assert elapsed < 3.0, f"Timeout took {elapsed:.1f}s, expected <3s"
+        assert result.result in (ValidationResult.TIMEOUT, ValidationResult.CONFIRMED)
 
     def test_validate_empty_pattern(self):
         validator = RecallValidator()

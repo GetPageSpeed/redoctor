@@ -49,10 +49,14 @@ class ProgramBuilder:
         self.program = Program()
         self.flags = flags or Flags()
         self.capture_count = 0
+        self.named_captures = {}  # name -> index mapping for named backrefs
 
     def build(self, pattern: Pattern) -> Program:
         """Build a program from a pattern."""
         self.flags = pattern.flags
+
+        # Collect named captures from the parser for backref resolution
+        self._collect_named_captures(pattern.node)
 
         # Compile the pattern
         self._compile(pattern.node)
@@ -61,7 +65,14 @@ class ProgramBuilder:
         self.program.add(Inst.match())
 
         self.program.num_captures = self.capture_count
+        self.program.multiline = self.flags.multiline
         return self.program
+
+    def _collect_named_captures(self, node: Node) -> None:
+        """Walk the AST to collect named capture group name->index mappings."""
+        for n in node.walk():
+            if isinstance(n, NamedCapture):
+                self.named_captures[n.name] = n.index
 
     def _emit(self, inst: Inst) -> int:
         """Emit an instruction and return its index."""
@@ -101,11 +112,17 @@ class ProgramBuilder:
 
         elif isinstance(node, FlagsGroup):
             if node.child:
+                # Save current flags, apply scoped flags, compile, restore
+                saved_flags = self.flags
+                self.flags = (self.flags | node.enable).subtract(node.disable)
                 self._compile(node.child)
+                self.flags = saved_flags
 
         elif isinstance(node, AtomicGroup):
-            # Atomic groups are compiled as regular groups
+            # Atomic groups prevent backtracking into the group body
+            self._emit(Inst.atomic_start())
             self._compile(node.child)
+            self._emit(Inst.atomic_end())
 
         elif isinstance(node, Star):
             self._compile_star(node)
@@ -131,19 +148,24 @@ class ProgramBuilder:
         elif isinstance(node, NonWordBoundary):
             self._emit(Inst(OpCode.NON_WORD_BOUNDARY))
 
-        elif isinstance(node, (StringStart, StringEnd)):
-            # String anchors are similar to line anchors
-            if isinstance(node, StringStart):
-                self._emit(Inst.line_start())
-            else:
-                self._emit(Inst.line_end())
+        elif isinstance(node, StringStart):
+            self._emit(Inst.string_start())
+
+        elif isinstance(node, StringEnd):
+            self._emit(Inst.string_end())
 
         elif isinstance(node, Backref):
             self._emit(Inst.backref(node.index))
 
         elif isinstance(node, NamedBackref):
-            # Named backrefs need name resolution
-            self._emit(Inst.backref(1))  # Placeholder
+            # Resolve named backref to group index
+            index = self.named_captures.get(node.name)
+            if index is None:
+                # Unknown group name — emit FAIL so matching never succeeds
+                # rather than silently resolving to group 1
+                self._emit(Inst.fail())
+            else:
+                self._emit(Inst.backref(index))
 
         elif isinstance(node, (LookAhead, NegLookAhead, LookBehind, NegLookBehind)):
             self._compile_lookaround(node)
@@ -267,6 +289,9 @@ class ProgramBuilder:
 
     def _compile_star(self, node: Star) -> None:
         """Compile * (zero or more)."""
+        if node.possessive:
+            self._emit(Inst.atomic_start())
+
         loop_start = len(self.program)
 
         if node.greedy:
@@ -282,8 +307,14 @@ class ProgramBuilder:
             self._emit(Inst.jump(loop_start))
             self.program.patch(split_idx, len(self.program))
 
+        if node.possessive:
+            self._emit(Inst.atomic_end())
+
     def _compile_plus(self, node: Plus) -> None:
         """Compile + (one or more)."""
+        if node.possessive:
+            self._emit(Inst.atomic_start())
+
         loop_start = len(self.program)
         self._compile(node.child)
 
@@ -294,8 +325,14 @@ class ProgramBuilder:
             split_idx = self._emit(Inst.split(0, loop_start))
             self.program.patch(split_idx, len(self.program))
 
+        if node.possessive:
+            self._emit(Inst.atomic_end())
+
     def _compile_question(self, node: Question) -> None:
         """Compile ? (zero or one)."""
+        if node.possessive:
+            self._emit(Inst.atomic_start())
+
         if node.greedy:
             # Greedy: try body first, then skip
             split_idx = self._emit(Inst.split(0, 0))
@@ -311,8 +348,14 @@ class ProgramBuilder:
             self.program.patch(split_idx, end)  # target1 = skip body (go to end)
             self.program.patch2(split_idx, body_start)  # target2 = try body
 
+        if node.possessive:
+            self._emit(Inst.atomic_end())
+
     def _compile_quantifier(self, node: Quantifier) -> None:
         """Compile {n,m} quantifier."""
+        if node.possessive:
+            self._emit(Inst.atomic_start())
+
         # Emit min required copies
         for _ in range(node.min):
             self._compile(node.child)
@@ -348,6 +391,9 @@ class ProgramBuilder:
                     self._compile(node.child)
                     self.program.patch(split_idx, len(self.program))  # target1 = skip
                     self.program.patch2(split_idx, body_start)  # target2 = body
+
+        if node.possessive:
+            self._emit(Inst.atomic_end())
 
     def _compile_lookaround(self, node: Node) -> None:
         """Compile lookaround assertions."""

@@ -20,6 +20,7 @@ class Program:
     instructions: List[Inst] = field(default_factory=list)
     num_captures: int = 0
     num_counters: int = 0
+    multiline: bool = False
     labels: Dict[str, int] = field(default_factory=dict)
 
     def __len__(self) -> int:

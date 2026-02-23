@@ -30,6 +30,10 @@ class HybridChecker:
             timeout=self.config.recall_timeout,
         )
 
+    def close(self) -> None:
+        """Release resources held by the checker."""
+        self.validator.close()
+
     def check(self, pattern: str, flags: Flags = None) -> Diagnostics:
         """Check a regex pattern for ReDoS vulnerabilities.
 
@@ -72,7 +76,7 @@ class HybridChecker:
             # If automaton checker returns unknown, use fuzz as fallback
             if result.status == Status.UNKNOWN:
                 fuzz_result = self.fuzz_checker.check_pattern(pattern)
-                if fuzz_result.is_vulnerable:
+                if fuzz_result.is_vulnerable or fuzz_result.is_safe:
                     result = fuzz_result
 
             # If automaton says SAFE, trust it.
@@ -152,14 +156,17 @@ def check(pattern: str, flags: Flags = None, config: Config = None) -> Diagnosti
         Diagnostics result with vulnerability information.
 
     Example:
-        >>> from recheck import check
+        >>> from redoctor import check
         >>> result = check(r"^(a+)+$")
         >>> if result.is_vulnerable:
         ...     print(f"Vulnerable: {result.complexity}")
         ...     print(f"Attack: {result.attack}")
     """
     checker = HybridChecker(config)
-    return checker.check(pattern, flags)
+    try:
+        return checker.check(pattern, flags)
+    finally:
+        checker.close()
 
 
 def check_pattern(pattern: Pattern, config: Config = None) -> Diagnostics:
@@ -173,7 +180,10 @@ def check_pattern(pattern: Pattern, config: Config = None) -> Diagnostics:
         Diagnostics result.
     """
     checker = HybridChecker(config)
-    return checker.check_pattern(pattern)
+    try:
+        return checker.check_pattern(pattern)
+    finally:
+        checker.close()
 
 
 def is_safe(pattern: str, flags: Flags = None, config: Config = None) -> bool:

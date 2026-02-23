@@ -53,8 +53,8 @@ class IChar:
         """
         if dotall:
             return cls(((0, 0x10FFFF),))
-        # Exclude newlines
-        return cls(((0, 9), (11, 12), (14, 0x10FFFF)))
+        # Exclude \n only (matching Python's re behavior)
+        return cls(((0, 9), (11, 0x10FFFF)))
 
     @classmethod
     def digit(cls) -> "IChar":

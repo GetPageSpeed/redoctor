@@ -75,3 +75,14 @@ class Flags:
             ascii=self.ascii or other.ascii,
             verbose=self.verbose or other.verbose,
         )
+
+    def subtract(self, other: "Flags") -> "Flags":
+        """Remove flags present in other."""
+        return Flags(
+            ignore_case=self.ignore_case and not other.ignore_case,
+            multiline=self.multiline and not other.multiline,
+            dotall=self.dotall and not other.dotall,
+            unicode=self.unicode and not other.unicode,
+            ascii=self.ascii and not other.ascii,
+            verbose=self.verbose and not other.verbose,
+        )

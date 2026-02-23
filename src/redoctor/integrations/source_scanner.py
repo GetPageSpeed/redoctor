@@ -1,6 +1,7 @@
 """Scan Python source files for regex patterns and check them for vulnerabilities."""
 
 import ast
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional, Iterator, Union
@@ -8,6 +9,8 @@ from typing import List, Optional, Iterator, Union
 from redoctor.checker import check
 from redoctor.diagnostics.diagnostics import Diagnostics, Status
 from redoctor.config import Config
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -85,8 +88,6 @@ class RegexFinder(ast.NodeVisitor):
         """Extract string value from an AST node."""
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             return node.value
-        if isinstance(node, ast.Str):  # Python 3.7 compatibility
-            return node.s
         if isinstance(node, ast.JoinedStr):
             # f-string - can't analyze statically
             return None
@@ -131,8 +132,8 @@ def scan_source(
                     context=context,
                 )
                 vulnerabilities.append(vuln)
-        except Exception:  # nosec B110 - intentional: skip unparseable patterns
-            pass
+        except Exception:
+            logger.debug("Skipping unparseable pattern %r", pattern, exc_info=True)
 
     return vulnerabilities
 

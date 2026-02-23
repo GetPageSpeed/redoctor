@@ -1,5 +1,6 @@
 """Fuzz-based ReDoS checker."""
 
+from collections import deque
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 import time
@@ -99,7 +100,7 @@ class FuzzChecker:
         start_time = time.time()
 
         # Fuzz loop
-        queue = list(seeds)
+        queue = deque(seeds)
         iterations = 0
         max_iterations = self.config.max_iterations
 
@@ -108,7 +109,7 @@ class FuzzChecker:
                 break
 
             iterations += 1
-            candidate = queue.pop(0)
+            candidate = queue.popleft()
 
             # Skip if too long
             if len(candidate) > self.config.max_attack_length:

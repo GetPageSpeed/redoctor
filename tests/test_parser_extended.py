@@ -143,6 +143,16 @@ class TestGroupsExtended:
         result = parse("(?-i:abc)")
         assert isinstance(result.node, FlagsGroup)
 
+    def test_flag_group_does_not_corrupt_unicode(self):
+        """Regression: (?i:...) enable/disable accumulators defaulted unicode=True,
+        causing subtract() to strip the unicode flag."""
+        result = parse("(?i:abc)")
+        node = result.node
+        assert isinstance(node, FlagsGroup)
+        assert node.enable.ignore_case is True
+        assert node.enable.unicode is False, "enable_flags must not set unicode"
+        assert node.disable.unicode is False, "disable_flags must not set unicode"
+
     def test_atomic_group(self):
         result = parse("(?>abc)")
         assert isinstance(result.node, AtomicGroup)
@@ -239,3 +249,37 @@ class TestErrorCases:
     def test_unknown_group_type(self):
         with pytest.raises(ParseError):
             parse("(?Z)")
+
+
+class TestParserBounds:
+    """Test parser bounds on digit and name parsing."""
+
+    def test_backref_digit_limit(self):
+        """Backref digit parsing stops at 10 digits."""
+        # \1 followed by 20 more digits — should parse as backref with truncated number
+        pattern_str = "\\" + "1" * 20
+        result = parse(pattern_str)
+        # Should parse without hanging; the backref captures first 10 digits
+        assert result is not None
+
+    def test_group_name_limit_named_capture(self):
+        """(?P<name>...) name parsing bounded at 256 chars."""
+        long_name = "a" * 300
+        with pytest.raises(ParseError, match="too long"):
+            parse("(?P<{0}>x)".format(long_name))
+
+    def test_group_name_limit_backref_g(self):
+        """\\g<name> name parsing bounded at 256 chars."""
+        long_name = "a" * 300
+        with pytest.raises(ParseError, match="too long"):
+            parse("\\g<{0}>".format(long_name))
+
+    def test_short_group_name_ok(self):
+        """Short group names still work fine."""
+        result = parse("(?P<foo>x)")
+        assert result is not None
+
+    def test_short_backref_ok(self):
+        """Normal backrefs still work fine."""
+        result = parse("\\1")
+        assert result is not None

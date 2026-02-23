@@ -1,8 +1,9 @@
 """Runtime validation using actual regex execution."""
 
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Optional, Pattern
+from typing import Optional
 import re
 import time
 
@@ -33,21 +34,16 @@ class RecallResult:
     error: Optional[str] = None
 
 
-class TimeoutException(Exception):
-    """Raised when validation times out."""
-
-    pass
-
-
-def _timeout_handler(signum, frame):
-    raise TimeoutException("Validation timed out")
-
-
 class RecallValidator:
     """Validates ReDoS vulnerabilities using actual regex execution.
 
     This confirms detected vulnerabilities by measuring actual execution
     time with Python's re module.
+
+    Supports the context manager protocol for deterministic cleanup::
+
+        with RecallValidator(timeout=1.0) as validator:
+            result = validator.validate(pattern, attack)
     """
 
     def __init__(
@@ -63,6 +59,19 @@ class RecallValidator:
         """
         self.timeout = timeout
         self.threshold_ratio = threshold_ratio
+        self._pool = None  # type: Optional[ThreadPoolExecutor]
+
+    def __enter__(self) -> "RecallValidator":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
+
+    def __del__(self) -> None:
+        # Safety net: abandon any lingering pool without blocking.
+        if self._pool is not None:
+            self._pool.shutdown(wait=False)
+            self._pool = None
 
     def validate(
         self,
@@ -202,31 +211,49 @@ class RecallValidator:
             attack_string=prefix + pump * max_pump_count + suffix,
         )
 
+    def _get_pool(self) -> ThreadPoolExecutor:
+        """Return the shared executor, creating one if needed."""
+        if self._pool is None:
+            self._pool = ThreadPoolExecutor(max_workers=1)
+        return self._pool
+
+    def _discard_pool(self) -> None:
+        """Discard the current executor (e.g. after a timeout with a stuck thread)."""
+        if self._pool is not None:
+            self._pool.shutdown(wait=False)
+            self._pool = None
+
+    def close(self) -> None:
+        """Shut down the executor cleanly."""
+        if self._pool is not None:
+            self._pool.shutdown(wait=True)
+            self._pool = None
+
     def _measure_match_time(
         self,
-        regex: Pattern,
+        regex: re.Pattern,
         string: str,
     ) -> Optional[float]:
         """Measure time to match a string.
 
+        Run regex.search() inside a ThreadPoolExecutor with a real timeout
+        so that a truly catastrophic regex cannot block forever.
+
         Returns:
             Execution time in seconds, or None if timed out.
         """
-        # Use simple timing (signal-based timeout not available on all platforms)
         start = time.perf_counter()
+        pool = self._get_pool()
 
         try:
-            # Try matching
-            regex.match(string)
-
-            end = time.perf_counter()
-            elapsed = end - start
-
-            # Check if we exceeded timeout
-            if elapsed > self.timeout:
-                return None
+            future = pool.submit(regex.search, string)
+            future.result(timeout=self.timeout)
+            elapsed = time.perf_counter() - start
             return elapsed
-
+        except FuturesTimeoutError:
+            # Thread may be stuck; discard pool so next call gets a fresh one
+            self._discard_pool()
+            return None
         except Exception:
             return None
 

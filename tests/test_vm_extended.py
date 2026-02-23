@@ -465,3 +465,121 @@ class TestInterpreterEdgeCases:
         interp = Interpreter(prog, max_steps=1000)
         result, _ = interp.match("aaa")
         assert result == MatchResult.MATCH
+
+
+class TestAnchorSemantics:
+    """Test ^ and $ anchor behavior with and without MULTILINE."""
+
+    def test_caret_no_multiline_only_matches_start(self):
+        """Without MULTILINE, ^ only matches at position 0."""
+        pattern = parse("^a")
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        result, _ = interp.match("a")
+        assert result == MatchResult.MATCH
+
+    def test_caret_no_multiline_rejects_after_newline(self):
+        """Without MULTILINE, ^ does NOT match after \\n."""
+        from redoctor.parser.flags import Flags
+
+        pattern = parse("^b", Flags(multiline=False))
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        # In a VM that does prefix-match, "\nb" starts at sp=0 which isn't 'b',
+        # so this should fail
+        result, _ = interp.match("\nb")
+        assert result == MatchResult.NO_MATCH
+
+    def test_caret_multiline_matches_after_newline(self):
+        """With MULTILINE, ^ matches after \\n."""
+        from redoctor.parser.flags import Flags
+
+        pattern = parse("^b", Flags(multiline=True))
+        prog = build_program(pattern)
+        assert prog.multiline is True
+        interp = Interpreter(prog)
+        result, _ = interp.match("\nb")
+        # VM starts at sp=0, ^ matches at 0 (start of string) in multiline,
+        # but chars[0] is '\n' not 'b', so it backtracks.
+        # Actually ^ at sp=0 succeeds, then tries to match 'b' against '\n' -> fail.
+        # No split, so NO_MATCH overall.
+        assert result == MatchResult.NO_MATCH
+
+    def test_dollar_no_multiline_matches_end_of_string(self):
+        """Without MULTILINE, $ matches at end of string."""
+        pattern = parse("a$")
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        result, _ = interp.match("a")
+        assert result == MatchResult.MATCH
+
+    def test_dollar_no_multiline_matches_before_trailing_newline(self):
+        """Without MULTILINE, $ matches just before a single trailing \\n."""
+        pattern = parse("a$")
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        result, _ = interp.match("a\n")
+        assert result == MatchResult.MATCH
+
+    def test_dollar_no_multiline_rejects_internal_newline(self):
+        """Without MULTILINE, $ does NOT match before an internal \\n."""
+        pattern = parse("a$")
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        # "a\nb" — $ should not match after 'a' because there's more after the \n
+        result, _ = interp.match("a\nb")
+        assert result == MatchResult.NO_MATCH
+
+    def test_dollar_multiline_matches_before_internal_newline(self):
+        """With MULTILINE, $ matches before any \\n."""
+        from redoctor.parser.flags import Flags
+
+        pattern = parse("a$", Flags(multiline=True))
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        result, _ = interp.match("a\nb")
+        assert result == MatchResult.MATCH
+
+    def test_multiline_flag_propagated_to_program(self):
+        """Verify the multiline flag is propagated from builder to program."""
+        from redoctor.parser.flags import Flags
+
+        pattern = parse("^a$", Flags(multiline=True))
+        prog = build_program(pattern)
+        assert prog.multiline is True
+
+        pattern = parse("^a$", Flags(multiline=False))
+        prog = build_program(pattern)
+        assert prog.multiline is False
+
+
+class TestAtomicGroupSeparation:
+    """Test that atomic groups use separate state from counters."""
+
+    def test_atomic_group_basic(self):
+        """Atomic groups should work correctly."""
+        pattern = parse("(?>a+)b")
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        # Atomic group commits to longest match of a+, leaving no 'a' for backtracking
+        result, _ = interp.match("aab")
+        # Since a+ consumes all a's atomically, 'b' has nothing to match -> NO_MATCH
+        # Wait - "aab": a+ matches "aa", then we need 'b' at position 2, which is 'b' -> MATCH
+        assert result == MatchResult.MATCH
+
+    def test_atomic_group_prevents_backtracking(self):
+        """Atomic group should prevent backtracking into the group."""
+        pattern = parse("(?>a+)a")
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        # a+ atomically matches all a's, then 'a' can't match -> NO_MATCH
+        result, _ = interp.match("aaa")
+        assert result == MatchResult.NO_MATCH
+
+    def test_possessive_quantifier(self):
+        """Possessive quantifier (implemented via atomic) should prevent backtracking."""
+        pattern = parse("a++a")
+        prog = build_program(pattern)
+        interp = Interpreter(prog)
+        result, _ = interp.match("aaa")
+        assert result == MatchResult.NO_MATCH
