@@ -3,7 +3,7 @@
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Optional
+from typing import Optional, Pattern
 import re
 import time
 
@@ -231,7 +231,7 @@ class RecallValidator:
 
     def _measure_match_time(
         self,
-        regex: re.Pattern,
+        regex: Pattern,
         string: str,
     ) -> Optional[float]:
         """Measure time to match a string.
