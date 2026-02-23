@@ -86,8 +86,12 @@ class RegexFinder(ast.NodeVisitor):
 
     def _extract_string(self, node: ast.expr) -> Optional[str]:
         """Extract string value from an AST node."""
+        # Python 3.8+ uses ast.Constant for all literals
         if isinstance(node, ast.Constant) and isinstance(node.value, str):
             return node.value
+        # Python 3.6/3.7 uses ast.Str for string literals
+        if isinstance(node, ast.Str):
+            return node.s
         if isinstance(node, ast.JoinedStr):
             # f-string - can't analyze statically
             return None
