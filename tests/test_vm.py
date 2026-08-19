@@ -1,6 +1,5 @@
 """Tests for the VM interpreter."""
 
-
 from redoctor.parser.parser import parse
 from redoctor.vm.inst import Inst, OpCode
 from redoctor.vm.program import Program
@@ -14,7 +13,7 @@ class TestInstructions:
     def test_char_instruction(self):
         from redoctor.unicode.ichar import IChar
 
-        inst = Inst.char(IChar.from_char("a"))
+        inst = Inst.character(IChar.from_char("a"))
         assert inst.op == OpCode.CHAR
 
     def test_jump_instruction(self):

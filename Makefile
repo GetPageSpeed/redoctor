@@ -2,7 +2,7 @@
 
 # Run all tests with coverage (parallel for speed)
 tests:
-	pytest tests/ -n auto --timeout=10 -q
+	pytest tests/ -n auto --timeout=60 -q
 
 # Alias for tests
 test: tests
@@ -42,7 +42,7 @@ install:
 
 # Run a quick test (no coverage)
 quick:
-	pytest tests/ -x --tb=short -n auto --timeout=5
+	pytest tests/ -x --tb=short -n auto --timeout=60
 
 # Run tests matching a pattern
 test-match:

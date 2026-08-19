@@ -1,6 +1,5 @@
 """Additional tests to boost coverage for release."""
 
-
 from redoctor import check, is_safe
 from redoctor.config import Config
 from redoctor.parser.parser import parse
@@ -257,7 +256,7 @@ class TestInterpreterBranches:
         # Test save instruction for captures
         prog = Program()
         prog.add(Inst.save(0))
-        prog.add(Inst.char(IChar.from_char("a")))
+        prog.add(Inst.character(IChar.from_char("a")))
         prog.add(Inst.save(1))
         prog.add(Inst.match())
 
@@ -268,7 +267,7 @@ class TestInterpreterBranches:
     def test_backref_not_set(self):
         # Backreference before capture
         prog = Program()
-        prog.add(Inst.backref(1))  # Refer to group 1 before it's captured
+        prog.add(Inst.backreference(1))  # Refer to group 1 before it's captured
         prog.add(Inst.match())
 
         interp = Interpreter(prog)

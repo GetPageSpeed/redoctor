@@ -1,11 +1,11 @@
-"""Runtime validation using actual regex execution."""
+"""Runtime validation using isolated regex execution."""
 
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Optional, Pattern
-import re
-import time
+from typing import Optional, Tuple
+import json
+import subprocess  # nosec B404 - required for the isolated recall worker
+import sys
 
 
 class ValidationResult(Enum):
@@ -59,19 +59,12 @@ class RecallValidator:
         """
         self.timeout = timeout
         self.threshold_ratio = threshold_ratio
-        self._pool = None  # type: Optional[ThreadPoolExecutor]
 
     def __enter__(self) -> "RecallValidator":
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
-
-    def __del__(self) -> None:
-        # Safety net: abandon any lingering pool without blocking.
-        if self._pool is not None:
-            self._pool.shutdown(wait=False)
-            self._pool = None
 
     def validate(
         self,
@@ -89,19 +82,17 @@ class RecallValidator:
         Returns:
             RecallResult with validation outcome.
         """
-        try:
-            regex = re.compile(pattern, flags)
-        except re.error as e:
+        baseline_time, error = self._measure_match_time(pattern, "a", flags)
+        if error:
             return RecallResult(
                 result=ValidationResult.ERROR,
-                error=f"Invalid regex: {e}",
+                error=error,
             )
 
-        # Measure baseline with a short string
-        baseline_time = self._measure_match_time(regex, "a")
-
         # Measure attack string
-        attack_time = self._measure_match_time(regex, attack_string)
+        attack_time, error = self._measure_match_time(pattern, attack_string, flags)
+        if error:
+            return RecallResult(result=ValidationResult.ERROR, error=error)
 
         if attack_time is None:
             return RecallResult(
@@ -158,14 +149,6 @@ class RecallValidator:
         Returns:
             RecallResult with validation outcome.
         """
-        try:
-            regex = re.compile(pattern, flags)
-        except re.error as e:
-            return RecallResult(
-                result=ValidationResult.ERROR,
-                error=f"Invalid regex: {e}",
-            )
-
         # Measure execution times for increasing pump counts
         times = []
         for n in [5, 10, 15, 20, 25]:
@@ -173,7 +156,10 @@ class RecallValidator:
                 break
 
             attack = prefix + pump * n + suffix
-            exec_time = self._measure_match_time(regex, attack)
+            exec_time, error = self._measure_match_time(pattern, attack, flags)
+
+            if error:
+                return RecallResult(result=ValidationResult.ERROR, error=error)
 
             if exec_time is None:
                 # Timed out - definitely vulnerable
@@ -211,51 +197,55 @@ class RecallValidator:
             attack_string=prefix + pump * max_pump_count + suffix,
         )
 
-    def _get_pool(self) -> ThreadPoolExecutor:
-        """Return the shared executor, creating one if needed."""
-        if self._pool is None:
-            self._pool = ThreadPoolExecutor(max_workers=1)
-        return self._pool
-
-    def _discard_pool(self) -> None:
-        """Discard the current executor (e.g. after a timeout with a stuck thread)."""
-        if self._pool is not None:
-            self._pool.shutdown(wait=False)
-            self._pool = None
-
     def close(self) -> None:
-        """Shut down the executor cleanly."""
-        if self._pool is not None:
-            self._pool.shutdown(wait=True)
-            self._pool = None
+        """Retain the context-manager API; workers are one-shot processes."""
 
     def _measure_match_time(
         self,
-        regex: Pattern,
+        pattern: str,
         string: str,
-    ) -> Optional[float]:
-        """Measure time to match a string.
+        flags: int = 0,
+    ) -> Tuple[Optional[float], Optional[str]]:
+        """Measure a match in a killable child interpreter.
 
-        Run regex.search() inside a ThreadPoolExecutor with a real timeout
-        so that a truly catastrophic regex cannot block forever.
+        Python's regex engine can retain the GIL during catastrophic
+        backtracking, so a thread timeout cannot protect the caller. A fresh
+        interpreter process gives the timeout a hard termination boundary.
 
         Returns:
-            Execution time in seconds, or None if timed out.
+            A pair of execution time and error. A timed-out match is
+            ``(None, None)``.
         """
-        start = time.perf_counter()
-        pool = self._get_pool()
+        try:
+            # The command is fixed, shell-free, and regex data travels only on
+            # stdin. This process boundary is what makes the timeout killable.
+            completed = subprocess.run(  # nosec B603
+                [sys.executable, "-m", "redoctor.recall.worker"],
+                input=json.dumps(
+                    {"pattern": pattern, "string": string, "flags": flags}
+                ),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+                timeout=self.timeout,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            return None, None
+        except (OSError, ValueError) as error:
+            return None, f"Recall worker failed: {error}"
+
+        if completed.returncode != 0:
+            return None, "Recall worker exited unexpectedly."
 
         try:
-            future = pool.submit(regex.search, string)
-            future.result(timeout=self.timeout)
-            elapsed = time.perf_counter() - start
-            return elapsed
-        except FuturesTimeoutError:
-            # Thread may be stuck; discard pool so next call gets a fresh one
-            self._discard_pool()
-            return None
-        except Exception:
-            return None
+            result = json.loads(completed.stdout)
+        except (TypeError, ValueError):
+            return None, "Recall worker returned invalid output."
+
+        if result.get("error"):
+            return None, result["error"]
+        return result.get("elapsed"), None
 
 
 def validate_attack(

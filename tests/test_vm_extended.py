@@ -1,6 +1,5 @@
 """Extended tests for the VM interpreter to increase coverage."""
 
-
 from redoctor.parser.parser import parse
 from redoctor.vm.inst import Inst, OpCode
 from redoctor.vm.program import Program
@@ -30,7 +29,7 @@ class TestInstructionsExtended:
         assert inst.op == OpCode.WORD_BOUNDARY
 
     def test_backref_instruction(self):
-        inst = Inst.backref(1)
+        inst = Inst.backreference(1)
         assert inst.op == OpCode.BACKREF
         assert inst.backref == 1
 
@@ -42,8 +41,13 @@ class TestInstructionsExtended:
         inst = Inst.any_char(dotall=True)
         assert inst.op == OpCode.ANY
 
+    def test_instruction_defaults_are_values_not_factory_methods(self):
+        inst = Inst.match()
+        assert inst.char is None
+        assert inst.backref == 0
+
     def test_instruction_repr(self):
-        inst = Inst.char(IChar.from_char("a"), label="test")
+        inst = Inst.character(IChar.from_char("a"), label="test")
         s = repr(inst)
         assert "CHAR" in s
 
@@ -69,7 +73,7 @@ class TestProgramExtended:
 
     def test_dump(self):
         prog = Program()
-        prog.add(Inst.char(IChar.from_char("a")))
+        prog.add(Inst.character(IChar.from_char("a")))
         prog.add(Inst.match())
         dump = prog.dump()
         assert "CHAR" in dump

@@ -68,44 +68,41 @@ class TestRecallValidatorContextManager:
 
     def test_context_manager_enter_exit(self):
         """Using 'with' should return the validator and call close()."""
-        with RecallValidator(timeout=0.1) as validator:
+        with RecallValidator(timeout=0.5) as validator:
             assert isinstance(validator, RecallValidator)
             result = validator.validate(r"^hello$", "hello")
             assert result.result in (
                 ValidationResult.NOT_CONFIRMED,
                 ValidationResult.CONFIRMED,
             )
-        # After exiting, the pool should be shut down
-        assert validator._pool is None
 
     def test_close_is_idempotent(self):
         """Calling close() multiple times must not raise."""
-        validator = RecallValidator(timeout=0.1)
+        validator = RecallValidator(timeout=0.5)
         validator.close()
         validator.close()  # second call is no-op
 
-    def test_pool_created_lazily(self):
-        """Pool should not exist until first use."""
-        validator = RecallValidator(timeout=0.1)
-        assert validator._pool is None
-        # Trigger pool creation
-        validator.validate(r"^a$", "a")
-        assert validator._pool is not None
+    def test_validation_uses_no_persistent_worker(self):
+        """One-shot worker validation leaves no executor to clean up."""
+        validator = RecallValidator(timeout=0.5)
+        result = validator.validate(r"^a$", "a")
+        assert result.result in (
+            ValidationResult.NOT_CONFIRMED,
+            ValidationResult.CONFIRMED,
+        )
         validator.close()
-        assert validator._pool is None
 
 
 class TestHybridCheckerClose:
     """Verify HybridChecker.close() cleans up the recall validator."""
 
     def test_close_releases_validator(self):
-        """close() should shut down the validator's thread pool."""
+        """close() remains safe after isolated validation."""
         config = Config(timeout=1.0, skip_recall=False, recall_timeout=0.1)
         checker = HybridChecker(config)
-        # Force a check to trigger pool creation
+        # Force a check before cleanup.
         checker.check(r"^hello$")
         checker.close()
-        assert checker.validator._pool is None
 
     def test_convenience_functions_dont_leak(self):
         """check() and check_pattern() convenience functions must close the checker."""

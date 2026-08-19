@@ -11,7 +11,7 @@ class TestRecallValidatorExtended:
     def test_validate_with_flags(self):
         import re
 
-        validator = RecallValidator(timeout=0.1)
+        validator = RecallValidator(timeout=0.5)
         result = validator.validate(r"^hello$", "HELLO", flags=re.IGNORECASE)
         assert result.result in (
             ValidationResult.NOT_CONFIRMED,
@@ -37,7 +37,7 @@ class TestRecallValidatorExtended:
         result = validator.validate(r"^(a+)+$", "a" * 25 + "!")
         elapsed = time.perf_counter() - start
         # Must return within a reasonable margin of the timeout, not hang
-        assert elapsed < 3.0, f"Timeout took {elapsed:.1f}s, expected <3s"
+        assert elapsed < 1.5, f"Timeout took {elapsed:.1f}s, expected <1.5s"
         assert result.result in (ValidationResult.TIMEOUT, ValidationResult.CONFIRMED)
 
     def test_validate_empty_pattern(self):

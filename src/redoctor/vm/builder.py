@@ -1,6 +1,5 @@
 """Build VM program from regex AST."""
 
-
 from redoctor.parser.ast import (
     Node,
     Pattern,
@@ -155,7 +154,7 @@ class ProgramBuilder:
             self._emit(Inst.string_end())
 
         elif isinstance(node, Backref):
-            self._emit(Inst.backref(node.index))
+            self._emit(Inst.backreference(node.index))
 
         elif isinstance(node, NamedBackref):
             # Resolve named backref to group index
@@ -165,7 +164,7 @@ class ProgramBuilder:
                 # rather than silently resolving to group 1
                 self._emit(Inst.fail())
             else:
-                self._emit(Inst.backref(index))
+                self._emit(Inst.backreference(index))
 
         elif isinstance(node, (LookAhead, NegLookAhead, LookBehind, NegLookBehind)):
             self._compile_lookaround(node)
@@ -184,7 +183,7 @@ class ProgramBuilder:
                 chars.add(ord(upper))
             intervals = tuple((c, c) for c in sorted(chars))
             char = IChar(intervals)
-        self._emit(Inst.char(char))
+        self._emit(Inst.character(char))
 
     def _compile_dot(self, node: Dot) -> None:
         """Compile dot (any character)."""
@@ -195,7 +194,7 @@ class ProgramBuilder:
         char = self._compute_char_class(node)
         if node.negated:
             char = char.negate()
-        self._emit(Inst.char(char))
+        self._emit(Inst.character(char))
 
     def _compute_char_class(self, node: CharClass) -> IChar:
         """Compute the IChar for a character class."""
@@ -238,7 +237,7 @@ class ProgramBuilder:
                 char = char.negate()
         else:
             char = IChar.any()
-        self._emit(Inst.char(char))
+        self._emit(Inst.character(char))
 
     def _compile_disjunction(self, node: Disjunction) -> None:
         """Compile alternation."""

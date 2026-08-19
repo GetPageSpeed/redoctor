@@ -24,7 +24,7 @@ from redoctor.diagnostics.hotspot import Hotspot
 from redoctor.parser.flags import Flags
 from redoctor.exceptions import RedoctorError, ParseError, AnalysisTimeoutError
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 
 __all__ = [
     # Main API

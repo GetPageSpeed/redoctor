@@ -10,6 +10,16 @@ All notable changes to ReDoctor are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-08-19
+
+### Fixed
+
+- Detect nested-quantifier vulnerabilities such as `(a+)+` in automatic mode
+- Harden parser, custom regex VM, fuzz seeding, and diagnostic error handling
+- Enforce recall-validation deadlines in killable child processes
+- Fix VM instruction field/factory collisions for characters and backreferences
+- Restore Python 3.6 and 3.7 compatibility in typing and source scanning
+
 ## [0.1.4] - 2026-01-10
 
 ### Added

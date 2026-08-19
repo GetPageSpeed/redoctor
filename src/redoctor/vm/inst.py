@@ -105,7 +105,7 @@ class Inst:
         return " ".join(parts)
 
     @classmethod
-    def char(cls, ichar: IChar, label: str = "") -> "Inst":
+    def character(cls, ichar: IChar, label: str = "") -> "Inst":
         """Create a CHAR instruction."""
         return cls(OpCode.CHAR, char=ichar, label=label)
 
@@ -150,7 +150,7 @@ class Inst:
         return cls(OpCode.WORD_BOUNDARY, label=label)
 
     @classmethod
-    def backref(cls, index: int, label: str = "") -> "Inst":
+    def backreference(cls, index: int, label: str = "") -> "Inst":
         """Create a BACKREF instruction."""
         return cls(OpCode.BACKREF, backref=index, label=label)
 
