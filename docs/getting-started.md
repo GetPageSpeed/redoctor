@@ -21,6 +21,15 @@ This guide will get you up and running with ReDoctor in under 5 minutes.
     pipx install redoctor
     ```
 
+=== "RPM (GetPageSpeed)"
+
+    ```bash
+    sudo dnf install https://extras.getpagespeed.com/release-latest.rpm
+    sudo dnf install python3-redoctor
+    ```
+
+    On EL7, use `sudo yum install python36-redoctor`.
+
 === "From source"
 
     ```bash
@@ -32,6 +41,15 @@ This guide will get you up and running with ReDoctor in under 5 minutes.
 !!! info "Requirements"
     - Python 3.6 or higher
     - No external dependencies required
+
+!!! tip "Using ReDoctor through Gixy"
+    Install `gixy-deep` to add ReDoctor-backed deep analysis while keeping the
+    base Gixy RPM free of a hard ReDoctor dependency:
+
+    ```bash
+    sudo dnf install gixy-deep
+    gixy --deep /etc/nginx/nginx.conf
+    ```
 
 ## Your First Check
 

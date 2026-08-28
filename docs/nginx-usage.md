@@ -208,6 +208,21 @@ map $args $is_valid {
 }
 ```
 
+## Gixy Integration
+
+Gixy can use ReDoctor for an optional deeper ReDoS pass while retaining its
+NGINX-specific configuration parsing, reporting, and safe fallback checks. On
+RPM-based systems with GetPageSpeed Extras enabled:
+
+```bash
+sudo dnf install gixy-deep
+gixy --deep /etc/nginx/nginx.conf
+```
+
+The `gixy-deep` metapackage adds ReDoctor without making it a hard dependency
+of the base Gixy RPM. Pip users can install the equivalent extra with
+`pip install 'gixy-ng[deep]'`.
+
 ## Best Practices
 
 1. **Always use anchors** (`^...$`) for NGINX locations

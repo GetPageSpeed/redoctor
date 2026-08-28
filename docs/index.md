@@ -66,6 +66,15 @@ with static analysis and intelligent fuzzing.
 pip install redoctor
 ```
 
+Or install the signed GetPageSpeed RPM on supported RPM-based systems:
+
+```bash
+sudo dnf install https://extras.getpagespeed.com/release-latest.rpm
+sudo dnf install python3-redoctor
+```
+
+On EL7, install `python36-redoctor` with `yum` instead.
+
 </div>
 
 <div class="quickstart-item" markdown>

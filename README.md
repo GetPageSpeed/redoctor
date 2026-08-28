@@ -93,9 +93,22 @@ Scan your entire Python codebase for vulnerable regex patterns. Integrates with 
 
 ## 📦 Installation
 
+From PyPI:
+
 ```bash
 pip install redoctor
 ```
+
+As a signed RPM from [GetPageSpeed Extras](https://extras.getpagespeed.com/redhat/repoview/python3-redoctor.html):
+
+```bash
+sudo dnf install https://extras.getpagespeed.com/release-latest.rpm
+sudo dnf install python3-redoctor
+```
+
+On EL7, use `sudo yum install python36-redoctor`. Gixy users should install
+`gixy-deep`, which pulls the correct ReDoctor package for the distribution and
+enables `gixy --deep` without adding ReDoctor to the base Gixy package.
 
 **Requirements:** Python 3.6+
 **Dependencies:** None (pure Python)

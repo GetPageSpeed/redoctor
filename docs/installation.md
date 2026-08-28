@@ -37,6 +37,24 @@ ReDoctor is a pure Python package with no external dependencies, making installa
     pipx install redoctor
     ```
 
+=== "RPM (GetPageSpeed)"
+
+    ```bash
+    sudo dnf install https://extras.getpagespeed.com/release-latest.rpm
+    sudo dnf install python3-redoctor
+    ```
+
+    On EL7, use `sudo yum install python36-redoctor`. The packages are signed
+    and published through the normal GetPageSpeed Extras repository pipeline.
+
+    For Gixy's optional deep ReDoS mode, install the companion metapackage
+    instead. It pulls the correct ReDoctor package for the distribution:
+
+    ```bash
+    sudo dnf install gixy-deep
+    gixy --deep /etc/nginx/nginx.conf
+    ```
+
 ## Verify Installation
 
 After installation, verify it works:
@@ -91,6 +109,14 @@ python -c "import redoctor; print(redoctor.__version__)"
     pipx upgrade redoctor
     ```
 
+=== "RPM (GetPageSpeed)"
+
+    ```bash
+    sudo dnf upgrade python3-redoctor
+    ```
+
+    On EL7, upgrade `python36-redoctor` with `yum`.
+
 ## Uninstalling
 
 === "pip"
@@ -104,6 +130,14 @@ python -c "import redoctor; print(redoctor.__version__)"
     ```bash
     pipx uninstall redoctor
     ```
+
+=== "RPM (GetPageSpeed)"
+
+    ```bash
+    sudo dnf remove python3-redoctor
+    ```
+
+    On EL7, remove `python36-redoctor` with `yum`.
 
 ## Virtual Environment Best Practices
 
