@@ -1,6 +1,5 @@
 """Tests for configuration."""
 
-
 from redoctor.config import Config, CheckerType, AccelerationMode, SeederType
 
 

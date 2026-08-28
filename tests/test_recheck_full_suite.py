@@ -66,9 +66,9 @@ class TestConstantComplexityRecheck:
     def test_constant_patterns(self, pattern, name):
         """Patterns that are constant time in recheck should be SAFE."""
         complexity = check_complexity(pattern)
-        assert (
-            complexity == ComplexityType.SAFE
-        ), f"Pattern '{pattern}' ({name}) should be SAFE (constant) but got {complexity}"
+        assert complexity == ComplexityType.SAFE, (
+            f"Pattern '{pattern}' ({name}) should be SAFE (constant) but got {complexity}"
+        )
 
 
 # =============================================================================
@@ -104,9 +104,9 @@ class TestLinearComplexityRecheck:
     def test_linear_patterns(self, pattern, flags, name):
         """Patterns that are linear time in recheck should be SAFE."""
         complexity = check_complexity(pattern, flags)
-        assert (
-            complexity == ComplexityType.SAFE
-        ), f"Pattern '{pattern}' ({name}) should be SAFE (linear) but got {complexity}"
+        assert complexity == ComplexityType.SAFE, (
+            f"Pattern '{pattern}' ({name}) should be SAFE (linear) but got {complexity}"
+        )
 
     def test_word_boundary_in_alternation(self):
         """^([a:]|\\b)*$ - word boundary in alternation.
@@ -150,9 +150,9 @@ class TestPolynomialComplexityRecheck:
     def test_polynomial_patterns(self, pattern, flags, degree, name):
         """Patterns that are polynomial time should be detected as vulnerable."""
         complexity = check_complexity(pattern, flags)
-        assert (
-            complexity in (ComplexityType.POLYNOMIAL, ComplexityType.EXPONENTIAL)
-        ), f"Pattern '{pattern}' ({name}) should be POLYNOMIAL or EXPONENTIAL but got {complexity}"
+        assert complexity in (ComplexityType.POLYNOMIAL, ComplexityType.EXPONENTIAL), (
+            f"Pattern '{pattern}' ({name}) should be POLYNOMIAL or EXPONENTIAL but got {complexity}"
+        )
 
 
 # =============================================================================
@@ -175,9 +175,9 @@ class TestExponentialComplexityRecheck:
     def test_exponential_patterns(self, pattern, name):
         """Patterns that are exponential time should be EXPONENTIAL."""
         complexity = check_complexity(pattern)
-        assert (
-            complexity == ComplexityType.EXPONENTIAL
-        ), f"Pattern '{pattern}' ({name}) should be EXPONENTIAL but got {complexity}"
+        assert complexity == ComplexityType.EXPONENTIAL, (
+            f"Pattern '{pattern}' ({name}) should be EXPONENTIAL but got {complexity}"
+        )
 
 
 # =============================================================================

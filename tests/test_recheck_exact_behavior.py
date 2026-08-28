@@ -251,33 +251,33 @@ class TestCriticalSafeNoFalsePositives:
     def test_simple_patterns_safe(self, pattern, name):
         """Simple patterns must be SAFE."""
         result = analyze(pattern)
-        assert (
-            result == ComplexityType.SAFE
-        ), f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        assert result == ComplexityType.SAFE, (
+            f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        )
 
     @pytest.mark.parametrize("pattern,name", DISJOINT_ALTERNATION)
     def test_disjoint_alternation_safe(self, pattern, name):
         """Disjoint alternation must be SAFE."""
         result = analyze(pattern)
-        assert (
-            result == ComplexityType.SAFE
-        ), f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        assert result == ComplexityType.SAFE, (
+            f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        )
 
     @pytest.mark.parametrize("pattern,name", BOUNDED_QUANTIFIERS)
     def test_bounded_quantifiers_safe(self, pattern, name):
         """Bounded quantifiers must be SAFE."""
         result = analyze(pattern)
-        assert (
-            result == ComplexityType.SAFE
-        ), f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        assert result == ComplexityType.SAFE, (
+            f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        )
 
     @pytest.mark.parametrize("pattern,name", REAL_WORLD_SAFE)
     def test_real_world_patterns_safe(self, pattern, name):
         """Real-world safe patterns must not be flagged."""
         result = analyze(pattern)
-        assert (
-            result == ComplexityType.SAFE
-        ), f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        assert result == ComplexityType.SAFE, (
+            f"FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        )
 
 
 # =============================================================================
@@ -510,16 +510,16 @@ class TestRegressions:
     def test_char_class_plus_not_vulnerable(self):
         """^[a-z]+$ must NOT be flagged."""
         result = analyze(r"^[a-z]+$")
-        assert (
-            result == ComplexityType.SAFE
-        ), "REGRESSION: ^[a-z]+$ incorrectly flagged!"
+        assert result == ComplexityType.SAFE, (
+            "REGRESSION: ^[a-z]+$ incorrectly flagged!"
+        )
 
     def test_literal_plus_suffix_not_vulnerable(self):
         """^[a-z]+foo$ must NOT be flagged."""
         result = analyze(r"^[a-z]+foo$")
-        assert (
-            result == ComplexityType.SAFE
-        ), "REGRESSION: ^[a-z]+foo$ incorrectly flagged!"
+        assert result == ComplexityType.SAFE, (
+            "REGRESSION: ^[a-z]+foo$ incorrectly flagged!"
+        )
 
 
 # =============================================================================

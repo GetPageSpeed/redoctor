@@ -76,7 +76,9 @@ class TestMustBeSafePatterns:
             f"{result.status.value}. This is a safe constant-time pattern."
         )
         if result.status == Status.SAFE and result.complexity:
-            assert not result.complexity.is_vulnerable, f"Pattern '{pattern}' ({name}) was marked safe but has vulnerable complexity"
+            assert not result.complexity.is_vulnerable, (
+                f"Pattern '{pattern}' ({name}) was marked safe but has vulnerable complexity"
+            )
 
     @pytest.mark.parametrize("pattern,name", LINEAR_PATTERNS)
     def test_linear_patterns_are_safe(self, pattern, name):
@@ -106,17 +108,17 @@ class TestMustBeSafePatterns:
         """^a* must NOT be flagged as vulnerable."""
         result = check(r"^a*$", config=Config.quick())
         assert result is not None
-        assert (
-            result.status != Status.VULNERABLE
-        ), "FALSE POSITIVE: ^a*$ is being flagged as vulnerable!"
+        assert result.status != Status.VULNERABLE, (
+            "FALSE POSITIVE: ^a*$ is being flagged as vulnerable!"
+        )
 
     def test_char_class_plus_is_not_vulnerable(self):
         """^[a-z]+ must NOT be flagged as vulnerable."""
         result = check(r"^[a-z]+$", config=Config.quick())
         assert result is not None
-        assert (
-            result.status != Status.VULNERABLE
-        ), "FALSE POSITIVE: ^[a-z]+$ is being flagged as vulnerable!"
+        assert result.status != Status.VULNERABLE, (
+            "FALSE POSITIVE: ^[a-z]+$ is being flagged as vulnerable!"
+        )
 
     def test_character_class_with_plus(self):
         """Character class with plus should be linear."""
@@ -128,9 +130,9 @@ class TestMustBeSafePatterns:
         ]
         for pattern in patterns:
             result = check(pattern, config=Config.quick())
-            assert (
-                result.status != Status.VULNERABLE
-            ), f"FALSE POSITIVE: {pattern} is being flagged as vulnerable!"
+            assert result.status != Status.VULNERABLE, (
+                f"FALSE POSITIVE: {pattern} is being flagged as vulnerable!"
+            )
 
 
 # =============================================================================
@@ -174,13 +176,12 @@ class TestMustBeVulnerablePatterns:
         if result.status == Status.VULNERABLE:
             assert result.complexity is not None
             # Should be exponential or polynomial
-            assert (
-                result.complexity.type
-                in (
-                    ComplexityType.EXPONENTIAL,
-                    ComplexityType.POLYNOMIAL,
-                )
-            ), f"Pattern '{pattern}' detected but with unexpected complexity: {result.complexity}"
+            assert result.complexity.type in (
+                ComplexityType.EXPONENTIAL,
+                ComplexityType.POLYNOMIAL,
+            ), (
+                f"Pattern '{pattern}' detected but with unexpected complexity: {result.complexity}"
+            )
 
     @pytest.mark.parametrize("pattern,name", POLYNOMIAL_PATTERNS)
     def test_polynomial_patterns_analyzed(self, pattern, name):
@@ -312,9 +313,9 @@ class TestComplexityClassification:
             result = check(pattern, config=Config.quick())
             assert result is not None
             if result.complexity:
-                assert (
-                    not result.complexity.is_exponential
-                ), f"Pattern '{pattern}' incorrectly classified as exponential"
+                assert not result.complexity.is_exponential, (
+                    f"Pattern '{pattern}' incorrectly classified as exponential"
+                )
 
     def test_nested_quantifier_is_exponential(self):
         """Nested quantifiers should be detected as exponential."""

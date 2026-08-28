@@ -11,7 +11,7 @@ class TestRecallValidatorExtended:
     def test_validate_with_flags(self):
         import re
 
-        validator = RecallValidator(timeout=0.5)
+        validator = RecallValidator(timeout=5.0)
         result = validator.validate(r"^hello$", "HELLO", flags=re.IGNORECASE)
         assert result.result in (
             ValidationResult.NOT_CONFIRMED,
@@ -41,7 +41,7 @@ class TestRecallValidatorExtended:
         assert result.result in (ValidationResult.TIMEOUT, ValidationResult.CONFIRMED)
 
     def test_validate_empty_pattern(self):
-        validator = RecallValidator()
+        validator = RecallValidator(timeout=5.0)
         result = validator.validate(r"", "test")
         assert result.result in (
             ValidationResult.NOT_CONFIRMED,
@@ -49,7 +49,7 @@ class TestRecallValidatorExtended:
         )
 
     def test_validate_empty_string(self):
-        validator = RecallValidator()
+        validator = RecallValidator(timeout=5.0)
         result = validator.validate(r".*", "")
         assert result.result in (
             ValidationResult.NOT_CONFIRMED,

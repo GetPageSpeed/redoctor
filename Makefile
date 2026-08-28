@@ -13,18 +13,18 @@ test-verbose:
 
 # Generate coverage report (slower, runs sequentially)
 coverage:
-	pytest --cov=src/recheck --cov-report=term-missing --cov-report=html tests/ --timeout=30
+	pytest --cov=src/redoctor --cov-report=term-missing --cov-report=html tests/ --timeout=30
 	@echo "Coverage report generated in htmlcov/"
 
 # Lint with ruff
 lint:
-	ruff check src/recheck tests/
-	ruff format --check src/recheck tests/
+	ruff check src/redoctor tests/
+	ruff format --check src/redoctor tests/
 
 # Format code with ruff
 format:
-	ruff format src/recheck tests/
-	ruff check --fix src/recheck tests/
+	ruff format src/redoctor tests/
+	ruff check --fix src/redoctor tests/
 
 # Clean up build artifacts
 clean:

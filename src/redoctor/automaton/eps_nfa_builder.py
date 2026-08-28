@@ -1,6 +1,5 @@
 """Build epsilon-NFA from regex AST using Thompson construction."""
 
-
 from redoctor.parser.ast import (
     Node,
     Pattern,

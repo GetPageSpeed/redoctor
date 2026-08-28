@@ -1,6 +1,5 @@
 """Tests for diagnostic types."""
 
-
 from redoctor.diagnostics.complexity import Complexity, ComplexityType
 from redoctor.diagnostics.attack_pattern import AttackPattern
 from redoctor.diagnostics.hotspot import Hotspot, HotspotSet

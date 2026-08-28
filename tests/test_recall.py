@@ -1,6 +1,5 @@
 """Tests for recall validation."""
 
-
 from redoctor.recall.validator import RecallValidator, ValidationResult, validate_attack
 
 
@@ -8,7 +7,9 @@ class TestRecallValidator:
     """Test recall validation."""
 
     def test_validate_safe_pattern(self):
-        validator = RecallValidator(timeout=0.5)
+        # The hard deadline includes one-shot interpreter startup. Allow
+        # enough headroom for saturated parallel test hosts.
+        validator = RecallValidator(timeout=5.0)
         result = validator.validate(r"^[a-z]+$", "hello")
         assert result.result in (
             ValidationResult.NOT_CONFIRMED,

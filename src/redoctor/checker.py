@@ -1,6 +1,5 @@
 """Main ReDoS checker combining all detection methods."""
 
-
 from redoctor.parser.parser import parse, Pattern
 from redoctor.parser.flags import Flags
 from redoctor.parser.ast import has_backreferences

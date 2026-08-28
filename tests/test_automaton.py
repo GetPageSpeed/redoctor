@@ -1,6 +1,5 @@
 """Tests for automaton infrastructure."""
 
-
 from redoctor.parser.parser import parse
 from redoctor.automaton.eps_nfa import EpsNFA, State, Transition, TransitionType
 from redoctor.automaton.eps_nfa_builder import build_eps_nfa

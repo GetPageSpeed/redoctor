@@ -1,6 +1,5 @@
 """Extended checker tests for increased coverage."""
 
-
 from redoctor import check, Config
 from redoctor.checker import HybridChecker
 from redoctor.parser.flags import Flags

@@ -1,6 +1,5 @@
 """Extended diagnostics tests for increased coverage."""
 
-
 from redoctor.diagnostics.complexity import Complexity
 from redoctor.diagnostics.attack_pattern import AttackPattern
 from redoctor.diagnostics.hotspot import Hotspot, HotspotSet

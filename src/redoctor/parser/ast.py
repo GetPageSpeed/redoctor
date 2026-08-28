@@ -16,8 +16,7 @@ class Node(ABC):
         ...
 
     @abstractmethod
-    def __repr__(self) -> str:
-        ...
+    def __repr__(self) -> str: ...
 
     def walk(self):
         """Yield this node and all descendants."""

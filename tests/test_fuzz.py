@@ -1,6 +1,5 @@
 """Tests for the fuzzing module."""
 
-
 from redoctor.parser.parser import parse
 from redoctor.fuzz.fstring import FString
 from redoctor.fuzz.seeder import StaticSeeder, DynamicSeeder

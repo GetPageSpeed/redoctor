@@ -68,7 +68,7 @@ class TestRecallValidatorContextManager:
 
     def test_context_manager_enter_exit(self):
         """Using 'with' should return the validator and call close()."""
-        with RecallValidator(timeout=0.5) as validator:
+        with RecallValidator(timeout=5.0) as validator:
             assert isinstance(validator, RecallValidator)
             result = validator.validate(r"^hello$", "hello")
             assert result.result in (
@@ -84,7 +84,7 @@ class TestRecallValidatorContextManager:
 
     def test_validation_uses_no_persistent_worker(self):
         """One-shot worker validation leaves no executor to clean up."""
-        validator = RecallValidator(timeout=0.5)
+        validator = RecallValidator(timeout=5.0)
         result = validator.validate(r"^a$", "a")
         assert result.result in (
             ValidationResult.NOT_CONFIRMED,

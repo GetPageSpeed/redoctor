@@ -1,6 +1,5 @@
 """Extended fuzz tests for increased coverage."""
 
-
 from redoctor.parser.parser import parse
 from redoctor.fuzz.fstring import FString
 from redoctor.fuzz.seeder import StaticSeeder

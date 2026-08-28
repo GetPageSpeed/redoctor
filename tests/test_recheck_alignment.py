@@ -86,9 +86,9 @@ class TestExactMatchesWithRecheck:
     def test_exponential_exact_match(self, pattern, name):
         """Exponential patterns - EXACT match with recheck (EXPONENTIAL)."""
         result = analyze(pattern)
-        assert (
-            result == ComplexityType.EXPONENTIAL
-        ), f"{pattern} ({name}) should be EXPONENTIAL"
+        assert result == ComplexityType.EXPONENTIAL, (
+            f"{pattern} ({name}) should be EXPONENTIAL"
+        )
 
     @pytest.mark.parametrize("pattern,name", POLYNOMIAL_DETECTED)
     def test_polynomial_detected(self, pattern, name):
@@ -258,9 +258,9 @@ class TestCriticalSafePatterns:
     def test_critical_safe(self, pattern, name):
         """These patterns MUST be SAFE - no false positives allowed."""
         result = analyze(pattern)
-        assert (
-            result == ComplexityType.SAFE
-        ), f"CRITICAL FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        assert result == ComplexityType.SAFE, (
+            f"CRITICAL FALSE POSITIVE: {pattern} ({name}) flagged as {result}"
+        )
 
 
 # =============================================================================

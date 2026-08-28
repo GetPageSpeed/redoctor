@@ -56,9 +56,9 @@ class TestConstantComplexity:
     def test_constant_patterns(self, pattern, name):
         """These patterns should be classified as SAFE (constant complexity)."""
         complexity = check_complexity(pattern)
-        assert (
-            complexity == ComplexityType.SAFE
-        ), f"Pattern '{pattern}' ({name}) should be SAFE but got {complexity}"
+        assert complexity == ComplexityType.SAFE, (
+            f"Pattern '{pattern}' ({name}) should be SAFE but got {complexity}"
+        )
 
 
 class TestLinearComplexity:
@@ -89,9 +89,9 @@ class TestLinearComplexity:
     def test_linear_patterns(self, pattern, name):
         """These patterns should be classified as SAFE (linear complexity)."""
         complexity = check_complexity(pattern)
-        assert (
-            complexity == ComplexityType.SAFE
-        ), f"Pattern '{pattern}' ({name}) should be SAFE but got {complexity}"
+        assert complexity == ComplexityType.SAFE, (
+            f"Pattern '{pattern}' ({name}) should be SAFE but got {complexity}"
+        )
 
 
 class TestPolynomialComplexity:
@@ -143,9 +143,9 @@ class TestExponentialComplexity:
     def test_exponential_patterns(self, pattern, name):
         """These patterns should be classified as EXPONENTIAL."""
         complexity = check_complexity(pattern)
-        assert (
-            complexity == ComplexityType.EXPONENTIAL
-        ), f"Pattern '{pattern}' ({name}) should be EXPONENTIAL but got {complexity}"
+        assert complexity == ComplexityType.EXPONENTIAL, (
+            f"Pattern '{pattern}' ({name}) should be EXPONENTIAL but got {complexity}"
+        )
 
 
 class TestClassicReDoSPatterns:
@@ -268,9 +268,9 @@ class TestEdgeCases:
         """
         complexity = check_complexity(r"^(?:.|.)*$")
         # Should detect as exponential since both . can match same chars
-        assert (
-            complexity in (ComplexityType.EXPONENTIAL, ComplexityType.SAFE)
-        ), f"^(?:.|.)*$ should be EXPONENTIAL (overlapping) or SAFE (if optimized), got {complexity}"
+        assert complexity in (ComplexityType.EXPONENTIAL, ComplexityType.SAFE), (
+            f"^(?:.|.)*$ should be EXPONENTIAL (overlapping) or SAFE (if optimized), got {complexity}"
+        )
 
 
 class TestRecheckSpecificCases:
@@ -385,9 +385,9 @@ class TestDifferentiatingLinearFromExponential:
         Therefore, no ambiguity, therefore SAFE.
         """
         complexity = check_complexity(r"^(a|b)+$")
-        assert (
-            complexity == ComplexityType.SAFE
-        ), "^(a|b)+$ has disjoint alternation and should be SAFE"
+        assert complexity == ComplexityType.SAFE, (
+            "^(a|b)+$ has disjoint alternation and should be SAFE"
+        )
 
     def test_char_class_is_safe(self):
         """[abc]+ - character class with + should be SAFE.
@@ -409,9 +409,9 @@ class TestRegressionsPrevented:
         was creating spurious ambiguity.
         """
         complexity = check_complexity(r"^a+$")
-        assert (
-            complexity == ComplexityType.SAFE
-        ), "REGRESSION: ^a+$ is incorrectly flagged as vulnerable!"
+        assert complexity == ComplexityType.SAFE, (
+            "REGRESSION: ^a+$ is incorrectly flagged as vulnerable!"
+        )
 
     def test_word_class_plus_no_false_positive(self):
         """^\\w+$ must NOT be flagged as vulnerable."""
